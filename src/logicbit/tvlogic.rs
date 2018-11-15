@@ -3,6 +3,8 @@
 use std::fmt;
 use std::ops::{BitAnd, BitOr, BitXor, Not};
 
+use crate::Resolve;
+
 macro_rules! expand_op_ieee1164value {
     ($func_name:ident, $trait_name:ident, $fn_name:ident) => {
         expand_op!(
@@ -105,6 +107,7 @@ fn resolve(a: Ie, b: Ie) -> Ie {
         _ => _U,
     }
 }
+expand_op_ieee1164value!(resolve, Resolve, resolve);
 
 #[cfg(test)]
 mod tests {
