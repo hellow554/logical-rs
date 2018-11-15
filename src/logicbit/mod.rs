@@ -13,5 +13,4 @@ pub use self::tvlogic::Ieee1164Value;
 pub trait Resolve<RHS = Self> {
     type Output: ?Sized;
     fn resolve(self, rhs: RHS) -> Self::Output;
-    fn initial_value(&self) -> Self::Output;
 }

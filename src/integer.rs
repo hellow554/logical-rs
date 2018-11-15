@@ -17,9 +17,6 @@ impl<'a, 'b> Resolve<&'b Integer> for &'a Integer {
             width: self.width,
         }
     }
-    fn initial_value(&self) -> Integer {
-        Integer::new_with_value(0u8, self.width())
-    }
 }
 
 impl PartialEq for Integer {

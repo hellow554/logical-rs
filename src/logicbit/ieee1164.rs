@@ -164,7 +164,7 @@ fn resolve(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
     ];
     TTABLE[a.to_index()][b.to_index()]
 }
-expand_resolve_op!(resolve, Ieee1164, Ieee1164, Ieee1164, _Z);
+expand_resolve_op!(resolve, Ieee1164, Ieee1164, Ieee1164);
 
 impl fmt::Display for Ieee1164 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
