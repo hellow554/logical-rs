@@ -21,11 +21,15 @@
 //!
 //! Afterwards you can use it in your 2018-rust-project
 //!
-//! ```rust,ignore
-//! use logical
+//! ```rust
+//! use logical;
 //! ```
 //!
 //! # Example: connect one port to an other
+//!
+//! Normally you will connect one [`Port`] to one [`Signal`] as input and then connect an other port as
+//! output to that same signal. On [`Updateable::update`] the value from the input will be transfered to
+//! the output.
 //!
 //! ```rust
 //! use logical::{Ieee1164, Port, Signal, Updateable};
@@ -43,6 +47,28 @@
 //! assert_eq!(Ieee1164::from('1'), to.value());
 //! ```
 //!
+//! # Example: multiple ports
+//!
+//! If you have more than one connector the value on the signal will be determined based on the
+//! [`Resolve`] trait. In this case a high-impedance value will be overriden by the Strong zero
+//! value and therefore result in 0.
+//!
+//! ```rust
+//! use logical::{Ieee1164, Port, Signal, Updateable};
+//! use logical::direction::{Input, Output};
+//!
+//! let from1 = Port::<_, Output>::new(Ieee1164::from('z'));
+//! let from2 = Port::<_, Output>::new(Ieee1164::from('0'));
+//! let to = Port::<_, Input>::default();
+//! let mut signal = Signal::new();
+//!
+//! signal.connect_as_input(&from1);
+//! signal.connect_as_input(&from2);
+//! signal.connect_as_output(&to);
+//!
+//! signal.update();
+//!
+//! assert_eq!(Ieee1164::from('0'), to.value());
 
 #[macro_use]
 mod mac;
