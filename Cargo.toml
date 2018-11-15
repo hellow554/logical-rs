@@ -14,5 +14,5 @@ edition = "2018"
 [lib]
 name = "logical"
 
-[bades]
+[badges]
 travis-ci = { repository = "hellow554/logical-rs" }
