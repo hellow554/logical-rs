@@ -10,7 +10,7 @@ macro_rules! expand_op_ieee1164 {
     };
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Ieee1164 {
     Uninitialized,
     Strong(Ieee1164Value),
@@ -151,7 +151,7 @@ impl<'a> Not for &'a Ieee1164 {
 
 fn resolve(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
     const TTABLE: [[Ieee1164; 9]; 9] = [
-        //    U   X   0   1   Z   W   L   H   -
+        // U   X   0   1   Z   W   L   H   -
         [_U, _U, _U, _U, _U, _U, _U, _U, _U], // U
         [_U, _X, _X, _X, _X, _X, _X, _X, _X], // X
         [_U, _X, _0, _X, _0, _0, _0, _0, _X], // 0
@@ -211,7 +211,7 @@ impl Ieee1164 {
     }
 
     pub fn is_X(self) -> bool {
-        self == _X
+        self == _X || self == _U || self == _Z || self == _W || self == _D
     }
 
     pub fn is_0(self) -> bool {
