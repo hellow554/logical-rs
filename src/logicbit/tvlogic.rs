@@ -19,10 +19,32 @@ macro_rules! expand_op_ieee1164value {
 }
 
 /// An Ieee1164Value is either `Zero`, `One` or `Unknown`, also known as Three-valued logic.
+/// You can use any binary, logical operation on it (or, and, xor) or use not and combine them as
+/// needed.
+///
+/// # Example: ¬((a ⊼ b) ⊻ c)
+///
+/// ```rust
+/// # use logical::Ieee1164Value;
+/// fn perform(a: Ieee1164Value, b: Ieee1164Value, c: Ieee1164Value) -> Ieee1164Value {
+///     !(!(a & b) ^ c)
+/// }
+/// # assert_eq!(perform(Ieee1164Value::Zero, Ieee1164Value::Zero, Ieee1164Value::Zero), Ieee1164Value::Zero);
+/// # assert_eq!(perform(Ieee1164Value::Zero, Ieee1164Value::Zero, Ieee1164Value::One), Ieee1164Value::One);
+/// # assert_eq!(perform(Ieee1164Value::Zero, Ieee1164Value::One, Ieee1164Value::Zero), Ieee1164Value::Zero);
+/// # assert_eq!(perform(Ieee1164Value::Zero, Ieee1164Value::One, Ieee1164Value::One), Ieee1164Value::One);
+/// # assert_eq!(perform(Ieee1164Value::One, Ieee1164Value::Zero, Ieee1164Value::Zero), Ieee1164Value::Zero);
+/// # assert_eq!(perform(Ieee1164Value::One, Ieee1164Value::Zero, Ieee1164Value::One), Ieee1164Value::One);
+/// # assert_eq!(perform(Ieee1164Value::One, Ieee1164Value::One, Ieee1164Value::Zero), Ieee1164Value::One);
+/// # assert_eq!(perform(Ieee1164Value::One, Ieee1164Value::One, Ieee1164Value::One), Ieee1164Value::Zero);
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Ieee1164Value {
+    /// Represents a logic zero or false
     Zero,
+    /// Represents a logic one or true
     One,
+    /// Represents an unknown value
     Unknown,
 }
 
