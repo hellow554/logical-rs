@@ -1,0 +1,8 @@
+[package]
+name = "logical"
+version = "0.1.0"
+authors = ["Marcel Hellwig <git@cookiesoft.de>"]
+edition = "2018"
+
+[dependencies]
+anymap = "*"
