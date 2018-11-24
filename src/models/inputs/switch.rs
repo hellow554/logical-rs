@@ -8,6 +8,13 @@ pub struct Switch<T> {
 }
 
 impl<T> Switch<T> {
+    pub fn new_with_value(value: T) -> Self {
+        Self {
+            output: Port::new(value),
+            _private: (),
+        }
+    }
+
     pub fn set_value(&mut self, value: T) {
         self.output.set_value(value);
     }

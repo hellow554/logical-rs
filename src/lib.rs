@@ -73,19 +73,19 @@
 
 #[macro_use]
 mod mac;
+mod circuit;
 pub mod dump;
 mod integer;
 mod logicbit;
 pub(self) mod port;
-mod reactor;
 mod signal;
 
 pub mod models;
 
+pub use self::circuit::Circuit;
 pub use self::integer::Integer;
 pub use self::logicbit::{Ieee1164, Ieee1164Value, Resolve};
 pub use self::port::Port;
-pub use self::reactor::Reactor;
 pub use self::signal::Signal;
 
 pub mod direction {

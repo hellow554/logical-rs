@@ -178,7 +178,7 @@ mod tests {
     }
 
     #[test]
-    fn signal_after_remove() {
+    fn signal_after_disconnect() {
         let val_a = Ieee1164::Strong(Ieee1164Value::One);
         let val_b = Ieee1164::Strong(Ieee1164Value::Zero);
         let mut p = Port::<_, InOut>::new(val_a);

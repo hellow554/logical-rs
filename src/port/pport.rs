@@ -196,13 +196,12 @@ mod tests {
         assert_eq!(s.value(), 8u8);
     }
 
-    fn write_on_input_should_not_compile() {
-        // ```compile_fail
-        //     use logical::{Port, Integer, port::Output};
-        //     let mut s = Port::<Integer, Output>::new();
-        //     s.set_value(Integer::new_with_value(4u8, 8));
-        //     assert_eq!(Integer::default(), s.value())
-        // ```
-        let _ = 3;
-    }
+    //fn write_on_input_should_not_compile() {
+    // ```compile_fail
+    //     use logical::{Port, Integer, port::Output};
+    //     let mut s = Port::<Integer, Output>::new();
+    //     s.set_value(Integer::new_with_value(4u8, 8));
+    //     assert_eq!(Integer::default(), s.value())
+    // ```
+    //}
 }

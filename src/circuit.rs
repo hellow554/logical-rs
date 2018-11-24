@@ -1,13 +1,13 @@
 use crate::Updateable;
 
 #[derive(Default)]
-pub struct Reactor {
+pub struct Circuit {
     updater: Vec<Box<Updateable>>,
 }
 
-impl Reactor {
+impl Circuit {
     pub fn new() -> Self {
-        Reactor { updater: vec![] }
+        Circuit { updater: vec![] }
     }
 
     pub fn tick(&mut self) {

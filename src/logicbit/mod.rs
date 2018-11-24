@@ -1,5 +1,3 @@
-#[macro_use]
-mod mac;
 mod ieee1164;
 mod tvlogic;
 
