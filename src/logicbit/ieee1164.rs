@@ -67,7 +67,8 @@ const _L: Ieee1164 = Ieee1164::Weak(Ieee1164Value::Zero);
 const _H: Ieee1164 = Ieee1164::Weak(Ieee1164Value::One);
 const _D: Ieee1164 = Ieee1164::DontCare;
 
-fn and(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn and(a: &Ieee1164, b: &Ieee1164) -> Ieee1164 {
     const TTABLE: [[Ieee1164; 9]; 9] = [
         //    U   X   0   1   Z   W   L   H   -
         [_U, _U, _0, _U, _U, _U, _0, _U, _U], // U
@@ -85,7 +86,8 @@ fn and(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
 }
 expand_op_ieee1164!(and, BitAnd, bitand);
 
-fn or(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn or(a: &Ieee1164, b: &Ieee1164) -> Ieee1164 {
     const TTABLE: [[Ieee1164; 9]; 9] = [
         //    U   X   0   1   Z   W   L   H   -
         [_U, _U, _U, _1, _U, _U, _U, _1, _U], // U
@@ -103,7 +105,8 @@ fn or(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
 }
 expand_op_ieee1164!(or, BitOr, bitor);
 
-fn xor(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn xor(a: &Ieee1164, b: &Ieee1164) -> Ieee1164 {
     const TTABLE: [[Ieee1164; 9]; 9] = [
         //    U   X   0   1   Z   W   L   H   -
         [_U, _U, _U, _U, _U, _U, _U, _U, _U], // U
@@ -149,7 +152,8 @@ impl<'a> Not for &'a Ieee1164 {
     }
 }
 
-fn resolve(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn resolve(a: &Ieee1164, b: &Ieee1164) -> Ieee1164 {
     const TTABLE: [[Ieee1164; 9]; 9] = [
         // U   X   0   1   Z   W   L   H   -
         [_U, _U, _U, _U, _U, _U, _U, _U, _U], // U
@@ -164,11 +168,11 @@ fn resolve(a: Ieee1164, b: Ieee1164) -> Ieee1164 {
     ];
     TTABLE[a.to_index()][b.to_index()]
 }
-expand_resolve_op!(resolve, Ieee1164, Ieee1164, Ieee1164);
+expand_op_ieee1164!(resolve, Resolve, resolve);
 
 impl fmt::Display for Ieee1164 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<{}>", char::from(self))
+        write!(f, "{}", char::from(self))
     }
 }
 

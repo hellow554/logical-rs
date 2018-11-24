@@ -74,8 +74,9 @@ impl fmt::Display for Ieee1164Value {
     }
 }
 
-fn and(a: Ie, b: Ie) -> Ie {
-    match (a, b) {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn and(a: &Ie, b: &Ie) -> Ie {
+    match (*a, *b) {
         (_0, _) | (_, _0) => _0,
         (_1, _1) => _1,
         _ => _U,
@@ -83,8 +84,9 @@ fn and(a: Ie, b: Ie) -> Ie {
 }
 expand_op_ieee1164value!(and, BitAnd, bitand);
 
-fn or(a: Ie, b: Ie) -> Ie {
-    match (a, b) {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn or(a: &Ie, b: &Ie) -> Ie {
+    match (*a, *b) {
         (_1, _) | (_, _1) => _1,
         (_0, _0) => _0,
         _ => _U,
@@ -112,8 +114,9 @@ impl<'a> Not for &'a Ieee1164Value {
     }
 }
 
-fn xor(a: Ie, b: Ie) -> Ie {
-    match (a, b) {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn xor(a: &Ie, b: &Ie) -> Ie {
+    match (*a, *b) {
         (_U, _) | (_, _U) => _U,
         (a, b) if a == b => _0,
         _ => _1,
@@ -121,10 +124,9 @@ fn xor(a: Ie, b: Ie) -> Ie {
 }
 expand_op_ieee1164value!(xor, BitXor, bitxor);
 
-//TODO: aehm, how to resolve without inital value?!
-#[allow(unused)]
-fn resolve(a: Ie, b: Ie) -> Ie {
-    match (a, b) {
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn resolve(a: &Ie, b: &Ie) -> Ie {
+    match (*a, *b) {
         (a, b) if a == b => a,
         _ => _U,
     }
@@ -147,9 +149,9 @@ mod tests {
         [_U, _U],
     ];
 
-    fn test(test_vector: &[Ie; 9], operator: &str, func: fn(Ie, Ie) -> Ie) {
+    fn test(test_vector: &[Ie; 9], operator: &str, func: fn(&Ie, &Ie) -> Ie) {
         for ([a, b], e) in BIN_VAL.iter().zip(test_vector) {
-            assert_eq!(func(*a, *b), *e, "{} {} {} ≠ {}", a, operator, b, e);
+            assert_eq!(func(a, b), *e, "{} {} {} ≠ {}", a, operator, b, e);
         }
     }
 

@@ -1,27 +1,27 @@
 macro_rules! expand_op {
-    ($func_name:ident, $trait_name:ident, $fn_name:ident, $for_type:ty, $output_type:ty, $rhs:ty) => {
+    ($func_name:ident, $trait_name:ident, $fn_name:ident, $for_type:ty, $rhs:ty, $output_type:ty) => {
         impl $trait_name<$rhs> for $for_type {
             type Output = $output_type;
             fn $fn_name(self, rhs: $rhs) -> Self::Output {
-                $func_name(self, rhs)
+                $func_name(&self, &rhs)
             }
         }
         impl<'a> $trait_name<$rhs> for &'a $for_type {
             type Output = $output_type;
             fn $fn_name(self, rhs: $rhs) -> Self::Output {
-                $func_name(*self, rhs)
+                $func_name(self, &rhs)
             }
         }
         impl<'b> $trait_name<&'b $rhs> for $for_type {
             type Output = $output_type;
             fn $fn_name(self, rhs: &'b $rhs) -> Self::Output {
-                $func_name(self, *rhs)
+                $func_name(&self, rhs)
             }
         }
         impl<'a, 'b> $trait_name<&'b $rhs> for &'a $for_type {
             type Output = $output_type;
             fn $fn_name(self, rhs: &'b $rhs) -> Self::Output {
-                $func_name(*self, *rhs)
+                $func_name(self, rhs)
             }
         }
     };
