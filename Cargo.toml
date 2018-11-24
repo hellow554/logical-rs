@@ -16,3 +16,6 @@ name = "logical"
 
 [badges]
 travis-ci = { repository = "hellow554/logical-rs" }
+
+[dependencies]
+chrono = "0.4"

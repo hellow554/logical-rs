@@ -146,6 +146,18 @@ where
     }
 }
 
+impl<D> IterValues for Port<Ieee1164, D>
+where
+    D: PortDirection,
+{
+    fn iter_values<F>(&self, mut f: F)
+    where
+        F: FnMut(&Ieee1164),
+    {
+        f(&self.inner.value.read().unwrap());
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
