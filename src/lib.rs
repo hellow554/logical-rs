@@ -69,6 +69,7 @@
 //! signal.update();
 //!
 //! assert_eq!(Ieee1164::from('0'), to.value());
+//! ```
 
 #[macro_use]
 mod mac;
@@ -79,7 +80,6 @@ pub(self) mod port;
 mod reactor;
 mod signal;
 
-pub mod gates;
 pub mod models;
 
 pub use self::integer::Integer;
@@ -88,13 +88,12 @@ pub use self::port::Port;
 pub use self::reactor::Reactor;
 pub use self::signal::Signal;
 
-pub trait Updateable {
-    fn update(&mut self);
-}
-
 pub mod direction {
     pub use super::port::{Dir, InOut, Input, MaybeRead, MaybeWrite, Off, Output, PortDirection, Read, Write};
 }
 
 pub type IeeeSignal = Signal<Ieee1164>;
 pub type IntegerSignal = Signal<Integer>;
+pub trait Updateable {
+    fn update(&mut self);
+}
