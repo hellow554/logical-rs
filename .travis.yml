@@ -6,6 +6,7 @@ script:
     - cargo build --verbose --all
     - cargo doc --verbose
     - cargo test --verbose
+    - cargo build --examples --verbose --all
 
 branches:
     only:
