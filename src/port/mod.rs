@@ -10,6 +10,6 @@ pub use self::portdirection::{Dir, InOut, Input, MaybeRead, MaybeWrite, Off, Out
 pub use self::pport::Port;
 
 #[derive(Debug)]
-pub(self) struct InnerPort<T> {
+pub(crate) struct InnerPort<T> {
     value: RwLock<T>,
 }

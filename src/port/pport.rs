@@ -5,11 +5,13 @@ use std::sync::{Arc, RwLock};
 use super::InnerPort;
 
 use crate::direction::{Dir, InOut, Input, MaybeRead, MaybeWrite, Output, PortDirection, Read, Write};
+use crate::dump::IterValues;
 use crate::port::portconnector::PortConnector;
+use crate::Ieee1164;
 
 #[derive(Debug, Clone)]
 pub struct Port<T, D: PortDirection> {
-    pub(super) inner: Arc<InnerPort<T>>,
+    pub(crate) inner: Arc<InnerPort<T>>,
     _marker: PhantomData<D>,
 }
 
@@ -39,7 +41,7 @@ impl<T, D: PortDirection> Port<T, D> {
 }
 
 impl<T, D: PortDirection> Port<T, D> {
-    pub(super) fn new_with_arc(arc: Arc<InnerPort<T>>) -> Self {
+    pub(crate) fn new_with_arc(arc: Arc<InnerPort<T>>) -> Self {
         Port {
             inner: arc,
             _marker: PhantomData,
