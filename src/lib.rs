@@ -92,8 +92,6 @@ pub mod direction {
     pub use super::port::{Dir, InOut, Input, MaybeRead, MaybeWrite, Off, Output, PortDirection, Read, Write};
 }
 
-pub type IeeeSignal = Signal<Ieee1164>;
-pub type IntegerSignal = Signal<Integer>;
 pub trait Updateable {
     fn update(&mut self);
 }
