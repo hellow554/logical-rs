@@ -75,7 +75,6 @@
 mod mac;
 mod circuit;
 pub mod dump;
-mod integer;
 mod logicbit;
 pub(self) mod port;
 mod signal;
@@ -83,8 +82,7 @@ mod signal;
 pub mod models;
 
 pub use self::circuit::Circuit;
-pub use self::integer::Integer;
-pub use self::logicbit::{Ieee1164, Ieee1164Value, Resolve};
+pub use self::logicbit::{Ieee1164, Ieee1164Value, LogicVector, Resolve};
 pub use self::port::Port;
 pub use self::signal::Signal;
 

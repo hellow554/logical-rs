@@ -163,10 +163,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::port::portdirection::InOut;
-    use crate::port::Input;
-    use crate::port::Output;
-    use crate::Integer;
+    use crate::direction::{InOut, Input, Output};
+    use crate::LogicVector;
 
     #[test]
     fn reading() {

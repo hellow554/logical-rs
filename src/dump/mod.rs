@@ -9,6 +9,7 @@ use std::fs::OpenOptions;
 use std::io::{self, Write};
 use std::path::Path;
 
+use crate::logicbit::LogicVector;
 use chrono::Local;
 
 pub trait IterPorts {
@@ -83,14 +84,23 @@ impl Vcd {
         self.tags.insert(self.timestamp, vec![]);
     }
 
-    //    pub fn serialize_port<D>(&mut self, name: &str, port: &Port<Ieee1164, D>)
-    //    where
-    //        D: PortDirection,
-    //    {
-    //        println!("{}", name);
-    //        print!("\t");
-    //        port.iter_values(|n, v| self.serialize_ieee1164(n, *v));
-    //    }
+    pub fn serialize_logivector(&mut self, identifier: &str, value: &LogicVector) {
+        let ident = self
+            .identifier
+            .entry(identifier.to_string())
+            .or_insert_with(|| Ident {
+                ty: Type::Register,
+                width: value.width(),
+                ident: gen_ident(),
+                name: identifier.to_string(),
+            })
+            .clone();
+
+        self.tags
+            .get_mut(&self.timestamp)
+            .unwrap()
+            .push((ident, value.to_string()));
+    }
 
     pub fn serialize_ieee1164(&mut self, identifier: &str, value: Ieee1164) {
         let ident = self
