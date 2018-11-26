@@ -19,3 +19,6 @@ travis-ci = { repository = "hellow554/logical-rs" }
 
 [dependencies]
 chrono = "0.4"
+
+[dev-dependencies]
+proptest = "0.6"
