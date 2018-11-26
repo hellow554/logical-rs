@@ -167,14 +167,11 @@ impl PartialEq for LogicVector {
 
 impl Eq for LogicVector {}
 
-impl<T> PartialEq<T> for LogicVector
-where
-    T: Into<u128> + Copy,
+impl PartialEq<u128> for LogicVector
 {
-    fn eq(&self, other: &T) -> bool {
+    fn eq(&self, other: &u128) -> bool {
         if let Some(this) = self.to_u128() {
-            let other: u128 = (*other).into();
-            this == other
+            this == *other
         } else {
             false
         }
@@ -269,9 +266,9 @@ mod tests {
         #[test]
         #[ignore]
         fn atm_ctor_value(value in 0u64..) {
-            let v = LogicVector::with_value(value, 128);
+            let v = LogicVector::with_value(value as u128, 128);
             prop_assert!(v.is_some());
-            prop_assert_eq!(v.unwrap(), value);
+            prop_assert_eq!(v.unwrap(), value as u128);
         }
     }
 
@@ -297,11 +294,11 @@ mod tests {
         let v = LogicVector::with_value(5, 3);
         let v = v.unwrap();
         assert_eq!(v.width(), 3);
-        assert_eq!(v, 5u8);
+        assert_eq!(v, 5);
         let v = LogicVector::with_value(0, 128);
         let v = v.unwrap();
         assert_eq!(v.width(), 128);
-        assert_eq!(v, 0u8);
+        assert_eq!(v, 0);
     }
 
     #[test]
@@ -320,7 +317,7 @@ mod tests {
     fn test_resize_value() {
         let mut v = LogicVector::with_value(5, 8).unwrap();
         assert_eq!(v.width(), 8);
-        assert_eq!(v, 5u8);
+        assert_eq!(v, 5);
         v.set_width(10);
         assert_eq!(v.width(), 10);
         v.set_width(10);
