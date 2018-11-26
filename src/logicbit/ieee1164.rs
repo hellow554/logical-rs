@@ -1,6 +1,7 @@
 #![allow(clippy::just_underscores_and_digits)]
 
 use super::{Ieee1164Value, Resolve};
+use std::convert::TryFrom;
 use std::fmt;
 use std::ops::{BitAnd, BitOr, BitXor, Not};
 
@@ -37,10 +38,13 @@ impl Default for Ieee1164 {
     }
 }
 
-impl From<char> for Ieee1164 {
-    fn from(c: char) -> Self {
-        match c.to_ascii_lowercase() {
+impl TryFrom<char> for Ieee1164 {
+    type Error = ();
+
+    fn try_from(c: char) -> Result<Self, ()> {
+        Ok(match c.to_ascii_lowercase() {
             'u' => Ieee1164::Uninitialized,
+            'x' => Ieee1164::Strong(Ieee1164Value::Unknown),
             '0' => Ieee1164::Strong(Ieee1164Value::Zero),
             '1' => Ieee1164::Strong(Ieee1164Value::One),
             'z' => Ieee1164::HighImpedance,
@@ -48,8 +52,8 @@ impl From<char> for Ieee1164 {
             'l' => Ieee1164::Weak(Ieee1164Value::Zero),
             'h' => Ieee1164::Weak(Ieee1164Value::One),
             '*' | '-' => Ieee1164::DontCare,
-            'x' | _ => Ieee1164::Strong(Ieee1164Value::Unknown),
-        }
+            _ => return Err(()),
+        })
     }
 }
 
