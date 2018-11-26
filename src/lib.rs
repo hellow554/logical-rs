@@ -35,7 +35,7 @@
 //! use logical::{Ieee1164, Port, Signal, Updateable};
 //! use logical::direction::{Input, Output};
 //!
-//! let from = Port::<_, Output>::new(Ieee1164::from('1'));
+//! let from = Port::<_, Output>::new(Ieee1164::_1);
 //! let to = Port::<_, Input>::default();
 //! let mut signal = Signal::new();
 //!
@@ -44,7 +44,7 @@
 //!
 //! signal.update();
 //!
-//! assert_eq!(Ieee1164::from('1'), to.value());
+//! assert_eq!(Ieee1164::_1, to.value());
 //! ```
 //!
 //! # Example: multiple ports
@@ -57,8 +57,8 @@
 //! use logical::{Ieee1164, Port, Signal, Updateable};
 //! use logical::direction::{Input, Output};
 //!
-//! let from1 = Port::<_, Output>::new(Ieee1164::from('z'));
-//! let from2 = Port::<_, Output>::new(Ieee1164::from('0'));
+//! let from1 = Port::<_, Output>::new(Ieee1164::_Z);
+//! let from2 = Port::<_, Output>::new(Ieee1164::_0);
 //! let to = Port::<_, Input>::default();
 //! let mut signal = Signal::new();
 //!
@@ -68,7 +68,7 @@
 //!
 //! signal.update();
 //!
-//! assert_eq!(Ieee1164::from('0'), to.value());
+//! assert_eq!(Ieee1164::_0, to.value());
 //! ```
 
 #[macro_use]

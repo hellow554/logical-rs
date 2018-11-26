@@ -19,6 +19,18 @@ pub enum Ieee1164 {
     DontCare,
 }
 
+impl Ieee1164 {
+    pub const _U: Ieee1164 = Ieee1164::Uninitialized;
+    pub const _X: Ieee1164 = Ieee1164::Strong(Ieee1164Value::Unknown);
+    pub const _1: Ieee1164 = Ieee1164::Strong(Ieee1164Value::One);
+    pub const _0: Ieee1164 = Ieee1164::Strong(Ieee1164Value::Zero);
+    pub const _W: Ieee1164 = Ieee1164::Weak(Ieee1164Value::Unknown);
+    pub const _H: Ieee1164 = Ieee1164::Weak(Ieee1164Value::One);
+    pub const _L: Ieee1164 = Ieee1164::Weak(Ieee1164Value::Zero);
+    pub const _Z: Ieee1164 = Ieee1164::HighImpedance;
+    pub const _D: Ieee1164 = Ieee1164::DontCare;
+}
+
 impl Default for Ieee1164 {
     fn default() -> Self {
         Ieee1164::Uninitialized
@@ -57,15 +69,15 @@ impl<'a> From<&'a Ieee1164> for char {
     }
 }
 
-const _U: Ieee1164 = Ieee1164::Uninitialized;
-const _X: Ieee1164 = Ieee1164::Strong(Ieee1164Value::Unknown);
-const _0: Ieee1164 = Ieee1164::Strong(Ieee1164Value::Zero);
-const _1: Ieee1164 = Ieee1164::Strong(Ieee1164Value::One);
-const _Z: Ieee1164 = Ieee1164::HighImpedance;
-const _W: Ieee1164 = Ieee1164::Weak(Ieee1164Value::Unknown);
-const _L: Ieee1164 = Ieee1164::Weak(Ieee1164Value::Zero);
-const _H: Ieee1164 = Ieee1164::Weak(Ieee1164Value::One);
-const _D: Ieee1164 = Ieee1164::DontCare;
+const _U: Ieee1164 = Ieee1164::_U;
+const _X: Ieee1164 = Ieee1164::_X;
+const _0: Ieee1164 = Ieee1164::_0;
+const _1: Ieee1164 = Ieee1164::_1;
+const _Z: Ieee1164 = Ieee1164::_Z;
+const _W: Ieee1164 = Ieee1164::_W;
+const _L: Ieee1164 = Ieee1164::_L;
+const _H: Ieee1164 = Ieee1164::_H;
+const _D: Ieee1164 = Ieee1164::_D;
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn and(a: &Ieee1164, b: &Ieee1164) -> Ieee1164 {
@@ -253,19 +265,19 @@ mod tests {
 
     #[test]
     fn add() {
-        assert_eq!(Ieee1164::from('0'), Ieee1164::from('x') & Ieee1164::from('0'));
+        assert_eq!(Ieee1164::_0, Ieee1164::_X & Ieee1164::_0);
     }
 
     #[test]
     fn or() {
-        assert_eq!(Ieee1164::from('1'), Ieee1164::from('L') | Ieee1164::from('H'))
+        assert_eq!(Ieee1164::_1, Ieee1164::_L | Ieee1164::_H)
     }
 
     #[test]
     fn xor() {
-        let a = Ieee1164::from('1');
-        let b = Ieee1164::from('1');
-        assert_eq!(Ieee1164::from('0'), a ^ b);
+        let a = Ieee1164::_1;
+        let b = Ieee1164::_1;
+        assert_eq!(Ieee1164::_0, a ^ b);
         //TODO
     }
 
@@ -276,27 +288,27 @@ mod tests {
 
     #[test]
     fn is_01() {
-        assert!(!Ieee1164::from('u').is_01());
-        assert!(Ieee1164::from('0').is_01());
-        assert!(Ieee1164::from('1').is_01());
-        assert!(!Ieee1164::from('z').is_01());
-        assert!(!Ieee1164::from('w').is_01());
-        assert!(!Ieee1164::from('l').is_01());
-        assert!(!Ieee1164::from('h').is_01());
-        assert!(!Ieee1164::from('-').is_01());
-        assert!(!Ieee1164::from('x').is_01());
+        assert!(!Ieee1164::_U.is_01());
+        assert!(Ieee1164::_0.is_01());
+        assert!(Ieee1164::_1.is_01());
+        assert!(!Ieee1164::_Z.is_01());
+        assert!(!Ieee1164::_W.is_01());
+        assert!(!Ieee1164::_L.is_01());
+        assert!(!Ieee1164::_H.is_01());
+        assert!(!Ieee1164::_D.is_01());
+        assert!(!Ieee1164::_X.is_01());
     }
 
     #[test]
     fn is_uxz() {
-        assert!(Ieee1164::from('u').is_UXZ());
-        assert!(!Ieee1164::from('0').is_UXZ());
-        assert!(!Ieee1164::from('1').is_UXZ());
-        assert!(Ieee1164::from('z').is_UXZ());
-        assert!(Ieee1164::from('w').is_UXZ());
-        assert!(!Ieee1164::from('l').is_UXZ());
-        assert!(!Ieee1164::from('h').is_UXZ());
-        assert!(Ieee1164::from('-').is_UXZ());
-        assert!(Ieee1164::from('x').is_UXZ());
+        assert!(Ieee1164::_U.is_UXZ());
+        assert!(!Ieee1164::_0.is_UXZ());
+        assert!(!Ieee1164::_1.is_UXZ());
+        assert!(Ieee1164::_Z.is_UXZ());
+        assert!(Ieee1164::_W.is_UXZ());
+        assert!(!Ieee1164::_L.is_UXZ());
+        assert!(!Ieee1164::_H.is_UXZ());
+        assert!(Ieee1164::_D.is_UXZ());
+        assert!(Ieee1164::_X.is_UXZ());
     }
 }
