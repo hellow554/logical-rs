@@ -7,7 +7,7 @@ documentation = "https://docs.rs/logical"
 homepage = "https://github.com/hellow554/logical-rs"
 repository = "https://github.com/hellow554/logical-rs"
 readme = "README.md"
-categories = ["ieee1164", "circuit-simulator"]
+categories = ["simulation", "Ieee1164"]
 license = "GPL-3.0"
 edition = "2018"
 

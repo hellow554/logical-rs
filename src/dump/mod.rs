@@ -48,7 +48,7 @@ impl fmt::Display for Type {
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Ident {
     ty: Type,
-    width: u8,
+    width: usize,
     ident: char,
     name: String,
 }
@@ -114,14 +114,13 @@ impl Vcd {
 impl Vcd {
     pub fn dump<A: AsRef<Path>>(&mut self, path: A) -> io::Result<()> {
         let mut file = OpenOptions::new().write(true).create(true).truncate(true).open(path)?; // FIXME: do not truncate
-                                                                                               // header
-        writeln!(file, "$date\n    {date}\n$end", date = Local::now())?;
-        writeln!(file, "$version\n    Logical-rs VCD dumper\n$end")?;
-        writeln!(file, "$comment\n    I don't like diz!\n$end")?;
+
+        // header
+        writeln!(file, "$date\n {date}\n$end", date = Local::now())?;
+        writeln!(file, "$version\n Logical-rs VCD dumper\n$end")?;
         writeln!(file, "$timescale 1ps $end")?;
 
         // vars
-        //$var wire 8 # data $end
         writeln!(file, "$scope module {module_name} $end", module_name = self.module_name)?;
         for i in self.identifier.values() {
             writeln!(file, "$var {type} {width} {ident} {name} $end", type=i.ty.to_string(), width=i.width, ident=i.ident, name=i.name)?;
@@ -134,10 +133,10 @@ impl Vcd {
         for (ts, values) in &self.tags {
             writeln!(file, "#{timestamp}", timestamp = ts)?;
             for (i, v) in values {
-                writeln!(file, "{value}{ident}", value = v, ident = i.ident)?;
-            }
-            if (*ts as usize) < self.tags.len() - 2 {
-                writeln!(file, "$end")?;
+                match i.ty {
+                    Type::Wire => writeln!(file, "{value}{ident}", value = v, ident = i.ident)?,
+                    Type::Register => writeln!(file, "b{value} {ident}", value = v, ident = i.ident)?,
+                }
             }
         }
 

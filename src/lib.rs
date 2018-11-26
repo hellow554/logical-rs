@@ -16,7 +16,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! logical = "0.1"
+//! logical = "0.2"
 //! ```
 //!
 //! Afterwards you can use it in your 2018-rust-project
