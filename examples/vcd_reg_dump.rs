@@ -2,7 +2,7 @@ use logical::dump::Vcd;
 use logical::{Ieee1164, LogicVector};
 
 fn main() {
-    let v = LogicVector::with_value(5, 8).unwrap();
+    let v = LogicVector::from_int_value(5, 8).unwrap();
     assert_eq!(v.width(), 8);
     assert_eq!(v, 5);
 
@@ -33,7 +33,7 @@ fn main() {
     dumper.serialize_logivector("foo", &foo);
     dumper.tick();
 
-    let one = LogicVector::with_value(1, 16).unwrap();
+    let one = LogicVector::from_int_value(1, 16).unwrap();
     for _ in 0..90 {
         dumper.serialize_logivector("foo", &foo);
         dumper.tick();

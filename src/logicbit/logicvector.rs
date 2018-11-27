@@ -1,9 +1,10 @@
-use std::ops::{Add, BitAnd, BitOr, BitXor, Index, IndexMut};
-
-use crate::{Ieee1164, Ieee1164Value};
 use std::cmp::Ordering;
-use std::fmt;
 use std::convert::TryFrom;
+use std::fmt;
+use std::ops::{Add, BitAnd, BitOr, BitXor, Index, IndexMut};
+use std::str::FromStr;
+
+use crate::{Ieee1164, Ieee1164Value, Resolve};
 
 macro_rules! expand_op_logicvector {
     ($func_name:ident, $trait_name:ident, $fn_name:ident) => {
@@ -24,41 +25,39 @@ pub struct LogicVector {
 }
 
 impl LogicVector {
-    pub fn with_value(value: u128, width: usize) -> Option<Self> {
+    pub fn from_ieee_value(value: Ieee1164, width: usize) -> Self {
+        assert_ne!(width, 0);
+        assert!(width <= 128);
+        Self {
+            inner: vec![value; width],
+        }
+    }
+
+    pub fn from_int_value(value: u128, width: usize) -> Option<Self> {
         let zeros = value.leading_zeros() as usize;
-        if width < (128 - zeros) {
+        if width < (128 - zeros) || width == 0 {
             return None;
         }
         let mut v: LogicVector = Self::from_str(&format!("{:b}", value)).unwrap();
-        v.set_width_with_value(width, Ieee1164::_0);
+        v.resize(width, Ieee1164::_0);
         Some(v)
     }
 
-    pub fn from_str(s: &str) -> Result<Self, LogicVectorConversionError> {
-        s.chars()
-            .try_fold(vec![], |mut v , c| {
-                v.push(Ieee1164::try_from(c).map_err(|_| LogicVectorConversionError::InalidChar(c))?);
-                Ok(v)
-            })
-            .map(|v| v.into())
-    }
-
     pub fn with_width(width: usize) -> Self {
-        assert_ne!(width, 0);
-        LogicVector {
-            inner: vec![Ieee1164::default(); width],
-        }
+        Self::from_ieee_value(Ieee1164::default(), width)
     }
+}
 
+impl LogicVector {
     pub fn width(&self) -> usize {
         self.inner.len()
     }
 
     pub fn set_width(&mut self, new_width: usize) {
-        self.set_width_with_value(new_width, Ieee1164::_U);
+        self.resize(new_width, Ieee1164::_U);
     }
 
-    pub fn set_width_with_value(&mut self, new_width: usize, value: Ieee1164) {
+    pub fn resize(&mut self, new_width: usize, value: Ieee1164) {
         let old_width = self.width();
         self.inner = match old_width.cmp(&new_width) {
             Ordering::Equal => return,
@@ -67,7 +66,17 @@ impl LogicVector {
         };
     }
 
-    fn to_u128(&self) -> Option<u128> {
+    pub fn set_all_to(&mut self, value: Ieee1164) {
+        self.inner.iter_mut().for_each(|v| *v = value);
+    }
+
+    pub fn set_int_value(&mut self, value: u128) -> Result<(), ()> {
+        std::mem::replace(self, Self::from_int_value(value, self.width()).ok_or(())?);
+        Ok(())
+    }
+
+    pub fn as_u128(&self) -> Option<u128> {
+        // TODO: maybe not pub?
         if self.has_UXZ() {
             return None;
         }
@@ -147,17 +156,36 @@ fn add(lhs: &LogicVector, rhs: &LogicVector) -> Option<LogicVector> {
     if lhs.width() != rhs.width() {
         return None;
     }
-    if let (Some(a), Some(b)) = (lhs.to_u128(), rhs.to_u128()) {
-        LogicVector::with_value((a + b) & ((1 << lhs.width()) - 1), lhs.width())
+    if let (Some(a), Some(b)) = (lhs.as_u128(), rhs.as_u128()) {
+        LogicVector::from_int_value((a + b) & ((1 << lhs.width()) - 1), lhs.width())
     } else {
         Some(LogicVector::with_width(lhs.width()))
     }
 }
 expand_op_logicvector!(add, Add, add);
 
+fn resolve(lhs: &LogicVector, rhs: &LogicVector) -> LogicVector {
+    if lhs.width() != rhs.width() {
+        panic!("Cannot resolve two different sized logicvectors.")
+    }
+
+    if lhs.is_ZZZ() && rhs.is_ZZZ() {
+        LogicVector::from_ieee_value(Ieee1164::_Z, lhs.width())
+    } else if lhs.is_ZZZ() || rhs.is_ZZZ() {
+        if lhs.is_ZZZ() {
+            rhs.clone()
+        } else {
+            lhs.clone()
+        }
+    } else {
+        lhs.inner.iter().zip(rhs.inner.iter()).map(|(a, b)| a.resolve(b)).collect::<Vec<_>>().into()
+    }
+}
+expand_op!(resolve, Resolve, resolve, LogicVector, LogicVector, LogicVector);
+
 impl PartialEq for LogicVector {
     fn eq(&self, other: &LogicVector) -> bool {
-        if let (Some(a), Some(b)) = (self.to_u128(), other.to_u128()) {
+        if let (Some(a), Some(b)) = (self.as_u128(), other.as_u128()) {
             a == b
         } else {
             false
@@ -167,10 +195,9 @@ impl PartialEq for LogicVector {
 
 impl Eq for LogicVector {}
 
-impl PartialEq<u128> for LogicVector
-{
+impl PartialEq<u128> for LogicVector {
     fn eq(&self, other: &u128) -> bool {
-        if let Some(this) = self.to_u128() {
+        if let Some(this) = self.as_u128() {
             this == *other
         } else {
             false
@@ -222,6 +249,18 @@ impl LogicVector {
     pub fn has_UXZ(&self) -> bool {
         self.inner.iter().any(|x| x.is_UXZ())
     }
+
+    pub fn is_000(&self) -> bool {
+        self.inner.iter().all(|x| x.is_0())
+    }
+
+    pub fn is_111(&self) -> bool {
+        self.inner.iter().all(|x| x.is_1())
+    }
+
+    pub fn is_ZZZ(&self) -> bool {
+        self.inner.iter().all(|x| x.is_Z())
+    }
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -229,9 +268,22 @@ pub enum LogicVectorConversionError {
     InalidChar(char),
 }
 
-impl Into<LogicVector> for Vec<Ieee1164> {
-    fn into(self) -> LogicVector {
-        LogicVector { inner: self }
+impl From<Vec<Ieee1164>> for LogicVector {
+    fn from(v: Vec<Ieee1164>) -> LogicVector {
+        LogicVector { inner: v }
+    }
+}
+
+impl FromStr for LogicVector {
+    type Err = LogicVectorConversionError;
+
+    fn from_str(s: &str) -> Result<Self, <Self as FromStr>::Err> {
+        s.chars()
+            .try_fold(vec![], |mut v, c| {
+                v.push(Ieee1164::try_from(c).map_err(|_| LogicVectorConversionError::InalidChar(c))?);
+                Ok(v)
+            })
+            .map(|v| v.into())
     }
 }
 
@@ -253,7 +305,7 @@ impl PartialOrd for LogicVector {
             return None;
         }
 
-        self.to_u128().partial_cmp(&other.to_u128())
+        self.as_u128().partial_cmp(&other.as_u128())
     }
 }
 
@@ -265,7 +317,7 @@ mod tests {
     proptest! {
         #[test]
         fn atm_ctor_value(value in 0u64..) {
-            let v = LogicVector::with_value(value as u128, 128);
+            let v = LogicVector::from_int_value(value as u128, 128);
             prop_assert!(v.is_some());
             prop_assert_eq!(v.unwrap(), value as u128);
         }
@@ -290,11 +342,11 @@ mod tests {
 
     #[test]
     fn ctor_value() {
-        let v = LogicVector::with_value(5, 3);
+        let v = LogicVector::from_int_value(5, 3);
         let v = v.unwrap();
         assert_eq!(v.width(), 3);
         assert_eq!(v, 5);
-        let v = LogicVector::with_value(0, 128);
+        let v = LogicVector::from_int_value(0, 128);
         let v = v.unwrap();
         assert_eq!(v.width(), 128);
         assert_eq!(v, 0);
@@ -314,7 +366,7 @@ mod tests {
 
     #[test]
     fn test_resize_value() {
-        let mut v = LogicVector::with_value(5, 8).unwrap();
+        let mut v = LogicVector::from_int_value(5, 8).unwrap();
         assert_eq!(v.width(), 8);
         assert_eq!(v, 5);
         v.set_width(10);
