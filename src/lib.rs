@@ -71,6 +71,10 @@
 //! assert_eq!(Ieee1164::_0, to.value());
 //! ```
 
+#[cfg(test)]
+#[macro_use]
+extern crate pretty_assertions;
+
 #[macro_use]
 mod mac;
 mod circuit;

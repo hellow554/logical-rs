@@ -264,7 +264,6 @@ mod tests {
 
     proptest! {
         #[test]
-        #[ignore]
         fn atm_ctor_value(value in 0u64..) {
             let v = LogicVector::with_value(value as u128, 128);
             prop_assert!(v.is_some());
@@ -278,14 +277,14 @@ mod tests {
             let v = LogicVector::with_width(width);
             assert_eq!(width, v.width());
             assert!(v.has_U(), "{:?}", v);
-            assert!(!v.has_X());
-            assert!(!v.has_0());
-            assert!(!v.has_1());
-            assert!(!v.has_Z());
-            assert!(!v.has_W());
-            assert!(!v.has_D());
-            assert!(!v.has_L());
-            assert!(!v.has_H());
+            assert!(!v.has_X(), "{:?}", v);
+            assert!(!v.has_0(), "{:?}", v);
+            assert!(!v.has_1(), "{:?}", v);
+            assert!(!v.has_Z(), "{:?}", v);
+            assert!(!v.has_W(), "{:?}", v);
+            assert!(!v.has_D(), "{:?}", v);
+            assert!(!v.has_L(), "{:?}", v);
+            assert!(!v.has_H(), "{:?}", v);
         }
     }
 
