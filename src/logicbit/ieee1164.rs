@@ -231,7 +231,7 @@ impl Ieee1164 {
     }
 
     pub fn is_X(self) -> bool {
-        self == _X || self == _U || self == _Z || self == _W || self == _D
+        self == _X
     }
 
     pub fn is_0(self) -> bool {
