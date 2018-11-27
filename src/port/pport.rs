@@ -8,6 +8,7 @@ use crate::direction::{Dir, InOut, Input, MaybeRead, MaybeWrite, Output, PortDir
 use crate::dump::IterValues;
 use crate::port::portconnector::PortConnector;
 use crate::Ieee1164;
+use std::sync::Weak;
 
 #[derive(Debug, Clone)]
 pub struct Port<T, D: PortDirection> {
@@ -34,18 +35,21 @@ impl<T, D: PortDirection> Port<T, D> {
         Port {
             inner: Arc::new(InnerPort {
                 value: RwLock::new(value),
+                signal: Weak::new(),
             }),
             _marker: PhantomData,
         }
     }
-}
 
-impl<T, D: PortDirection> Port<T, D> {
     pub(crate) fn new_with_arc(arc: Arc<InnerPort<T>>) -> Self {
         Port {
             inner: arc,
             _marker: PhantomData,
         }
+    }
+
+    pub fn is_connected(&self) -> bool {
+        self.inner.signal.upgrade().is_some()
     }
 }
 
@@ -60,13 +64,27 @@ where
     }
 }
 
+impl<T, W> Port<T, Dir<Read, W>>
+where
+    W: MaybeWrite,
+    Dir<Read, W>: PortDirection,
+{
+    pub fn with_value<F: FnOnce(&T)>(&self, f: F) {
+        f(&self.inner.value.read().unwrap());
+    }
+}
+
 impl<T, R> Port<T, Dir<R, Write>>
 where
     R: MaybeRead,
     Dir<R, Write>: PortDirection,
 {
-    pub fn set_value(&mut self, value: T) {
+    pub fn replace(&mut self, value: T) {
         *self.inner.value.write().unwrap() = value;
+    }
+
+    pub fn with_value_mut<F: FnOnce(&mut T)>(&mut self, f: F) {
+        f(&mut self.inner.value.write().unwrap());
     }
 }
 
@@ -175,24 +193,24 @@ mod tests {
     #[test]
     fn set() {
         let mut s = Port::<_, Output>::default();
-        s.set_value(LogicVector::with_value(3, 8));
+        s.replace(LogicVector::from_int_value(3, 8));
         //assert_eq!(*s.inner.value.read().unwrap(), 3);
     }
 
     #[test]
     fn reset() {
         let mut s = Port::<_, InOut>::default();
-        s.set_value(LogicVector::with_value(5, 8));
+        s.replace(LogicVector::from_int_value(5, 8));
         //assert_eq!(s.value(), 5);
-        s.set_value(LogicVector::with_value(6, 8));
+        s.replace(LogicVector::from_int_value(6, 8));
         //assert_eq!(s.value(), 6);
     }
 
     #[test]
     fn reset_before_reading() {
         let mut s = Port::<_, InOut>::default();
-        s.set_value(LogicVector::with_value(4, 8));
-        s.set_value(LogicVector::with_value(8, 8));
+        s.replace(LogicVector::from_int_value(4, 8));
+        s.replace(LogicVector::from_int_value(8, 8));
         //assert_eq!(s.value(), 8);
     }
 

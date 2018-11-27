@@ -17,25 +17,25 @@ fn main() {
     let output = Led::default();
 
     let mut sig_input_signal = Signal::new();
-    sig_input_signal.connect_as_input(&input1.output);
-    sig_input_signal.connect_as_output(&xor.a);
+    sig_input_signal.connect(&input1.output).unwrap();
+    sig_input_signal.connect(&xor.a).unwrap();
 
     let mut sig_input_mux = Signal::new();
-    sig_input_mux.connect_as_input(&input2.output);
-    sig_input_mux.connect_as_output(&mux.a);
+    sig_input_mux.connect(&input2.output).unwrap();
+    sig_input_mux.connect(&mux.a).unwrap();
 
     let mut sig_mux_switch = Signal::new();
-    sig_mux_switch.connect_as_input(&mux_switch.output);
-    sig_mux_switch.connect_as_output(&mux.s);
+    sig_mux_switch.connect(&mux_switch.output).unwrap();
+    sig_mux_switch.connect(&mux.s).unwrap();
 
     let mut sig_rec = Signal::new();
-    sig_rec.connect_as_output(&mux.b);
-    sig_rec.connect_as_output(&output.input);
-    sig_rec.connect_as_input(&xor.z);
+    sig_rec.connect(&mux.b).unwrap();
+    sig_rec.connect(&output.input).unwrap();
+    sig_rec.connect(&xor.z).unwrap();
 
     let mut sig_mux_xor = Signal::new();
-    sig_mux_xor.connect_as_input(&mux.z);
-    sig_mux_xor.connect_as_output(&xor.b);
+    sig_mux_xor.connect(&mux.z).unwrap();
+    sig_mux_xor.connect(&xor.b).unwrap();
 
     let mut circuit = Circuit::new();
     circuit.add_updater(&xor);

@@ -14,7 +14,7 @@ pub struct TriBuffer {
 
 impl Updateable for TriBuffer {
     fn update(&mut self) {
-        self.z.set_value(if self.s.value().is_1H() {
+        self.z.replace(if self.s.value().is_1H() {
             self.a.value()
         } else if self.s.value().is_0L() {
             Ieee1164::HighImpedance

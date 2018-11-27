@@ -39,8 +39,8 @@
 //! let to = Port::<_, Input>::default();
 //! let mut signal = Signal::new();
 //!
-//! signal.connect_as_input(&from);
-//! signal.connect_as_output(&to);
+//! signal.connect(&from);
+//! signal.connect(&to);
 //!
 //! signal.update();
 //!
@@ -62,9 +62,9 @@
 //! let to = Port::<_, Input>::default();
 //! let mut signal = Signal::new();
 //!
-//! signal.connect_as_input(&from1);
-//! signal.connect_as_input(&from2);
-//! signal.connect_as_output(&to);
+//! signal.connect(&from1);
+//! signal.connect(&from2);
+//! signal.connect(&to);
 //!
 //! signal.update();
 //!

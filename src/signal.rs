@@ -2,7 +2,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::logicbit::Resolve;
 
-use crate::direction::{Dir, Input, MaybeRead, MaybeWrite, Output, Read, Write};
+use crate::direction::{Input, Output};
 
 use crate::port::PortConnector;
 use crate::port::PortDirection;
@@ -26,6 +26,12 @@ impl<T> Default for Signal<T> {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ConnectionError {
+    AlreadyConnected,
+    MismatchWidth(usize, usize),
+}
+
 impl<T> Signal<T> {
     pub fn new() -> Self {
         Signal {
@@ -36,46 +42,63 @@ impl<T> Signal<T> {
         }
     }
 
-    pub fn connect_as_input<R>(&mut self, port: &Port<T, Dir<R, Write>>)
+    //    pub fn can_connect<D>(&self, port: &Port<T, D>)
+    //    where
+    //        D: PortDirection,
+    //    {
+    //        let in_guard = self.inner.input_ports.read().unwrap();
+    //        let out_guard = self.inner.input_ports.read().unwrap();
+    //
+    //        (if let Some(i) = in_guard.iter().next() {
+    //            i.can_connect(&port)
+    //        } && if let Some(o) = out_guard.iter().next() {
+    //            o.can_connect(&port);
+    //        })
+    //    }
+
+    pub fn connect<D>(&mut self, port: &Port<T, D>) -> Result<(), ConnectionError>
     where
-        R: MaybeRead,
-        Dir<R, Write>: PortDirection,
+        D: PortDirection,
     {
-        let connector = port.try_into().unwrap(); //TODO: how can get rid of `try_into` and use `into` because we know, that this is safe!
-        let mut guard = self.inner.input_ports.write().unwrap();
-        if !guard.contains(&connector) {
-            guard.push(connector);
+        if port.is_connected() {
+            return Err(ConnectionError::AlreadyConnected);
         }
-    }
+        // TODO: check length
 
-    pub fn connect_as_output<W>(&mut self, port: &Port<T, Dir<Read, W>>)
-    where
-        W: MaybeWrite,
-        Dir<Read, W>: PortDirection,
-    {
-        let connector = port.try_into().unwrap();
-        let mut guard = self.inner.output_ports.write().unwrap();
-        if !guard.contains(&connector) {
-            guard.push(connector);
+        let mut in_guard = self.inner.input_ports.write().unwrap();
+        let mut out_guard = self.inner.output_ports.write().unwrap();
+
+        //reversed order because our vectors contains portconnectors and have the opposite direction
+        if D::IS_INPUT || D::IS_INOUT {
+            let connector = port.try_into().unwrap();
+            if !out_guard.contains(&connector) {
+                out_guard.push(connector)
+            }
         }
+        if D::IS_OUTPUT || D::IS_INOUT {
+            let connector = port.try_into().unwrap();
+            if !in_guard.contains(&connector) {
+                in_guard.push(connector)
+            }
+        }
+
+        Ok(())
     }
 
-    pub fn disconnect_input<R>(&mut self, port: &Port<T, Dir<R, Write>>)
+    pub fn disconnect<D>(&mut self, port: &Port<T, D>)
     where
-        R: MaybeRead,
-        Dir<R, Write>: PortDirection,
+        D: PortDirection,
     {
-        let connector = port.try_into().unwrap();
-        self.inner.input_ports.write().unwrap().remove_item(&connector);
-    }
-
-    pub fn disconnect_output<W>(&mut self, port: &Port<T, Dir<Read, W>>)
-    where
-        W: MaybeWrite,
-        Dir<Read, W>: PortDirection,
-    {
-        let connector = port.try_into().unwrap();
-        self.inner.output_ports.write().unwrap().remove_item(&connector);
+        let mut in_guard = self.inner.input_ports.write().unwrap();
+        let mut out_guard = self.inner.output_ports.write().unwrap();
+        if D::IS_OUTPUT || D::IS_INOUT {
+            let connector = port.try_into().unwrap();
+            in_guard.remove_item(&connector);
+        }
+        if D::IS_INPUT || D::IS_INOUT {
+            let connector = port.try_into().unwrap();
+            out_guard.remove_item(&connector);
+        }
     }
 
     fn remove_expired_portconnector(&mut self) {
@@ -140,7 +163,7 @@ mod tests {
     fn signal_no_value_no_port() {
         let mut s = Signal::<Ieee1164>::new();
         let port = Port::<_, Input>::default();
-        s.connect_as_output(&port);
+        s.connect(&port).unwrap();
         assert_eq!(Ieee1164::default(), port.value());
         s.update();
         assert_eq!(Ieee1164::default(), port.value());
@@ -156,8 +179,8 @@ mod tests {
         let mut p = Port::<_, Output>::default();
         let mut s = Signal::new();
 
-        s.connect_as_output(&i);
-        s.connect_as_input(&p);
+        s.connect(&i).unwrap();
+        s.connect(&p).unwrap();
         assert_eq!(Ieee1164::default(), i.value());
         s.update();
         assert_eq!(Ieee1164::Uninitialized, i.value());
@@ -167,7 +190,7 @@ mod tests {
         }
 
         let val = Ieee1164::Strong(Ieee1164Value::One);
-        p.set_value(val);
+        p.replace(val);
         s.update();
         assert_eq!(val, i.value());
 
@@ -184,13 +207,13 @@ mod tests {
         let mut p = Port::<_, InOut>::new(val_a);
         let o = Port::<_, Input>::default();
         let mut s = Signal::new();
-        s.connect_as_input(&p);
-        s.connect_as_output(&o);
+        s.connect(&p).unwrap();
+        s.connect(&o).unwrap();
         s.update();
         assert_eq!(val_a, o.value());
 
-        s.disconnect_input(&p);
-        p.set_value(val_b);
+        s.disconnect(&p);
+        p.replace(val_b);
         s.update();
         assert_ne!(val_b, o.value());
     }
@@ -204,9 +227,9 @@ mod tests {
         let o = Port::<_, Input>::new(Ieee1164::DontCare);
         let mut s = Signal::new();
 
-        s.connect_as_input(&p1);
-        s.connect_as_input(&p2);
-        s.connect_as_output(&o);
+        s.connect(&p1).unwrap();
+        s.connect(&p2).unwrap();
+        s.connect(&o).unwrap();
         s.update();
         assert_eq!(val_a.resolve(val_b), o.value());
     }
@@ -218,14 +241,14 @@ mod tests {
         let val_a = Ieee1164::Strong(Ieee1164Value::One);
         let val_b = Ieee1164::Strong(Ieee1164Value::Zero);
 
-        let p1 = Port::<_, InOut>::new(val_a);
+        let p1 = Port::<_, Output>::new(val_a);
         let o = Port::<_, Input>::default();
-        s.connect_as_input(&p1);
-        s.connect_as_output(&o);
+        s.connect(&p1).unwrap();
+        s.connect(&o).unwrap();
 
         {
-            let p2 = Port::<_, InOut>::new(val_b);
-            s.connect_as_input(&p2);
+            let p2 = Port::<_, Output>::new(val_b);
+            s.connect(&p2).unwrap();
             s.update();
             assert_eq!(val_a.resolve(val_b), o.value());
         }
@@ -240,12 +263,12 @@ mod tests {
 
         let val = Ieee1164::Strong(Ieee1164Value::One);
         let p = Port::<_, InOut>::new(val);
-        s.connect_as_input(&p);
-        s.connect_as_input(&p);
+        s.connect(&p).unwrap();
+        s.connect(&p).unwrap();
         assert_eq!(1, s.inner.input_ports.read().unwrap().len());
 
-        s.connect_as_output(&p);
-        s.connect_as_output(&p);
+        s.connect(&p).unwrap();
+        s.connect(&p).unwrap();
         assert_eq!(1, s.inner.output_ports.read().unwrap().len());
     }
 }

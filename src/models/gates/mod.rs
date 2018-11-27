@@ -20,7 +20,7 @@ macro_rules! create_simple_1i1o_gate {
 
         impl Updateable for $name {
             fn update(&mut self) {
-                self.z.set_value($func(self.a.value()));
+                self.z.replace($func(self.a.value()));
             }
         }
 
@@ -48,7 +48,7 @@ macro_rules! create_simple_2i1o_gate {
 
         impl Updateable for $name {
             fn update(&mut self) {
-                self.z.set_value($func(self.a.value(), self.b.value()));
+                self.z.replace($func(self.a.value(), self.b.value()));
             }
         }
 
