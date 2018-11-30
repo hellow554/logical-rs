@@ -178,6 +178,20 @@ where
     }
 }
 
+//pub trait CanConnect {
+//    fn can_connect(&self, other: &Self) -> bool;
+//}
+//
+//impl<T: CanConnect, D: PortDirection> CanConnect for Port<T, D> {
+//    fn can_connect(&self, other: &Self) -> bool {
+//        self.inner
+//            .value
+//            .read()
+//            .unwrap()
+//            .can_connect(&other.inner.value.read().unwrap())
+//    }
+//}
+
 #[cfg(test)]
 mod tests {
     use super::*;

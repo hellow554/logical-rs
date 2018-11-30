@@ -35,9 +35,9 @@ fn main() {
 
     let one = LogicVector::from_int_value(1, 16).unwrap();
     for _ in 0..90 {
+        foo = foo + &one;
         dumper.serialize_logivector("foo", &foo);
         dumper.tick();
-        foo = (foo + &one).unwrap();
     }
 
     dumper.dump("/home/marcel/b.vcd").unwrap();
