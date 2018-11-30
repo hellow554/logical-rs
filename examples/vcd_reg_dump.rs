@@ -2,10 +2,6 @@ use logical::dump::Vcd;
 use logical::{Ieee1164, LogicVector};
 
 fn main() {
-    let v = LogicVector::from_int_value(5, 8).unwrap();
-    assert_eq!(v.width(), 8);
-    assert_eq!(v, 5);
-
     let mut dumper = Vcd::new("VCD Example");
     let mut foo: LogicVector;
 
@@ -35,9 +31,9 @@ fn main() {
 
     let one = LogicVector::from_int_value(1, 16).unwrap();
     for _ in 0..90 {
+        foo = foo + &one;
         dumper.serialize_logivector("foo", &foo);
         dumper.tick();
-        foo = (foo + &one).unwrap();
     }
 
     dumper.dump("/home/marcel/b.vcd").unwrap();
