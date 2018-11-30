@@ -271,7 +271,7 @@ fn add(lhs: &LogicVector, rhs: &LogicVector) -> LogicVector {
     assert_eq!(width, rhs.width());
 
     LogicVector::from_int_value(
-        lhs.as_u128().unwrap() + rhs.as_u128().unwrap() & gen_mask_from_width(width),
+        (lhs.as_u128().unwrap() + rhs.as_u128().unwrap()) & gen_mask_from_width(width),
         width,
     )
     .unwrap()
