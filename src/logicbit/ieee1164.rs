@@ -51,15 +51,15 @@ impl TryFrom<char> for Ieee1164 {
             'w' => Ieee1164::Weak(Ieee1164Value::Unknown),
             'l' => Ieee1164::Weak(Ieee1164Value::Zero),
             'h' => Ieee1164::Weak(Ieee1164Value::One),
-            '*' | '-' => Ieee1164::DontCare,
+            '*' | '-' | 'd' => Ieee1164::DontCare,
             _ => return Err(()),
         })
     }
 }
 
-impl<'a> From<&'a Ieee1164> for char {
-    fn from(i: &Ieee1164) -> Self {
-        match *i {
+impl From<Ieee1164> for char {
+    fn from(i: Ieee1164) -> Self {
+        match i {
             Ieee1164::Uninitialized => 'U',
             Ieee1164::Strong(Ieee1164Value::Unknown) => 'X',
             Ieee1164::Strong(Ieee1164Value::Zero) => '0',
@@ -188,7 +188,7 @@ expand_op_ieee1164!(resolve, Resolve, resolve);
 
 impl fmt::Display for Ieee1164 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", char::from(self))
+        write!(f, "{}", char::from(*self))
     }
 }
 

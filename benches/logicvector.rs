@@ -21,7 +21,7 @@ fn create_from_int(b: &mut Bencher) {
 fn create_from_vec(b: &mut Bencher) {
     b.iter(|| {
         for i in 0..NITER {
-            bb(LogicVector::from(vec![Ieee1164::_U; (i % 128) as usize]));
+            bb(LogicVector::from(vec![Ieee1164::_U; ((i % 127) + 1) as usize]));
         }
     })
 }
@@ -39,7 +39,7 @@ fn create_from_str(b: &mut Bencher) {
 fn create_width(b: &mut Bencher) {
     b.iter(|| {
         for i in 0..NITER {
-            bb(LogicVector::with_width((i % 128) as usize + 1));
+            bb(LogicVector::with_width(((i % 128) + 1) as u8));
         }
     })
 }
