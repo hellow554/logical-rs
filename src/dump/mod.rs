@@ -49,7 +49,7 @@ impl fmt::Display for Type {
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Ident {
     ty: Type,
-    width: usize,
+    width: u8,
     ident: char,
     name: String,
 }
