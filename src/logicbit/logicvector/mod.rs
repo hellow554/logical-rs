@@ -7,7 +7,7 @@ use std::fmt;
 use std::ops::{Add, BitAnd, BitOr, BitXor};
 use std::str::FromStr;
 
-use crate::{Ieee1164, Ieee1164Value, Resolve};
+use crate::{Ieee1164, Resolve};
 
 #[allow(unused)]
 macro_rules! expand_op_logicvector {
@@ -38,18 +38,7 @@ macro_rules! unsafe_version_logicvector {
 }
 
 #[inline(always)]
-fn build_mask(old: u8, new: u8) -> u128 {
-    use std::u128::MAX;
-    match (old, new) {
-        (a, b) if a >= b => panic!("`old` cannot be greater/equal than `new`!"),
-        (128, 128) => MAX,
-        (a, 128) => MAX & !((1 << a) - 1),
-        (a, b) => ((1 << b) - 1) & !((1 << a) - 1),
-    }
-}
-
-#[inline(always)]
-fn gen_mask_from_width(width: u8) -> u128 {
+fn mask_from_width(width: u8) -> u128 {
     if width != 128 {
         ((1 << width) - 1)
     } else {
@@ -73,9 +62,9 @@ impl LogicVector {
         assert!(assert_width(width));
         let mut s = Self {
             masks: Masks::default(),
-            width: width as u8,
+            width,
         };
-        s.masks[value] = std::u128::MAX & gen_mask_from_width(width);
+        s.masks[value] = std::u128::MAX & mask_from_width(width);
         debug_assert_eq!(Ok(()), s.sanity_check());
         s
     }
@@ -85,11 +74,10 @@ impl LogicVector {
         if assert_width(width) && width >= (128 - zeros) {
             let mut masks = Masks::default();
             masks[Ieee1164::_1] = value;
-            masks[Ieee1164::_0] = (!value) & gen_mask_from_width(width);
+            masks[Ieee1164::_0] = (!value) & mask_from_width(width);
 
-            let s = Self { masks, width };
-            debug_assert_eq!(Ok(()), s.sanity_check());
-            Some(s)
+            debug_assert_eq!(Ok(()), masks.sanity_check(width));
+            Some(Self { masks, width })
         } else {
             None
         }
@@ -111,36 +99,65 @@ impl LogicVector {
         debug_assert_eq!(Ok(()), self.sanity_check());
     }
 
-    pub fn resize(&mut self, new_width: u8, value: Ieee1164) {
+    pub fn resize(&mut self, new_width: u8, value: Ieee1164) -> Option<LogicVector> {
+        fn resize_mask(old: u8, new: u8) -> u128 {
+            match (old, new) {
+                (a, b) if a >= b => unreachable!("`old` cannot be greater/equal than `new`!"),
+                (128, 128) => std::u128::MAX,
+                (a, 128) => std::u128::MAX & !((1 << a) - 1),
+                (a, b) => ((1 << b) - 1) & !((1 << a) - 1),
+            }
+        }
+
         assert!(assert_width(new_width));
         let old_width = self.width();
         self.width = new_width as u8;
 
-        match old_width.cmp(&new_width) {
-            Ordering::Equal => {}
+        let res = match old_width.cmp(&new_width) {
+            Ordering::Equal => None,
             Ordering::Less => {
-                let mask = build_mask(old_width, new_width);
+                let mask = resize_mask(old_width, new_width);
 
-                for masks in &mut self.masks {
-                    if masks.0 == value {
-                        *masks.1 |= std::u128::MAX & mask;
+                for m in &mut self.masks {
+                    if m.0 == value {
+                        *m.1 |= std::u128::MAX & mask;
                     } else {
-                        *masks.1 &= !(std::u128::MAX & mask);
+                        *m.1 &= !(std::u128::MAX & mask);
                     }
                 }
+                None
             }
             Ordering::Greater => {
-                for mask in &mut self.masks {
-                    *mask.1 &= std::u128::MAX & gen_mask_from_width(new_width);
+                let mut nv = Masks::default();
+
+                let mask_nv = resize_mask(new_width, old_width);
+                let mask_ov = mask_from_width(new_width);
+                for (m_new, m_old) in nv.iter_mut().zip(self.masks.iter_mut()) {
+                    assert_eq!(m_new.0, m_old.0);
+                    *m_new.1 = (*m_old.1 & mask_nv) >> new_width;
+                    *m_old.1 &= std::u128::MAX & mask_ov;
                 }
+
+                Some(LogicVector {
+                    masks: nv,
+                    width: old_width - new_width,
+                })
             }
         };
+        if let Some(ref nv) = res {
+            debug_assert_eq!(Ok(()), nv.sanity_check());
+        }
         debug_assert_eq!(Ok(()), self.sanity_check());
+        res
     }
 
     pub fn set_all_to(&mut self, value: Ieee1164) {
         for mask in &mut self.masks {
-            *mask.1 = if value == mask.0 { std::u128::MAX } else { 0 }
+            *mask.1 = if value == mask.0 {
+                mask_from_width(self.width)
+            } else {
+                0
+            }
         }
         debug_assert_eq!(Ok(()), self.sanity_check());
     }
@@ -157,6 +174,22 @@ impl LogicVector {
             None
         } else {
             Some(self.masks[Ieee1164::_1])
+        }
+    }
+
+    pub fn get(&self, idx: u8) -> Option<Ieee1164> {
+        assert!(idx < 128);
+        if idx < self.width() {
+            Some(self.masks.get(idx))
+        } else {
+            None
+        }
+    }
+
+    pub fn set(&mut self, idx: u8, value: Ieee1164) {
+        assert!(idx < 128);
+        if idx < self.width() {
+            self.masks.set(idx, value)
         }
     }
 }
@@ -254,7 +287,7 @@ impl LogicVector {
         }
         let width = self.width();
         if let (Some(a), Some(b)) = (self.as_u128(), rhs.as_u128()) {
-            LogicVector::from_int_value((a + b) & gen_mask_from_width(width), width)
+            LogicVector::from_int_value((a + b) & mask_from_width(width), width)
         } else {
             Some(LogicVector::with_width(width))
         }
@@ -271,7 +304,7 @@ fn add(lhs: &LogicVector, rhs: &LogicVector) -> LogicVector {
     assert_eq!(width, rhs.width());
 
     LogicVector::from_int_value(
-        (lhs.as_u128().unwrap() + rhs.as_u128().unwrap()) & gen_mask_from_width(width),
+        (lhs.as_u128().unwrap() + rhs.as_u128().unwrap()) & mask_from_width(width),
         width,
     )
     .unwrap()
@@ -285,11 +318,7 @@ expand_op!(resolve, Resolve, resolve, LogicVector, LogicVector, LogicVector);
 
 impl PartialEq for LogicVector {
     fn eq(&self, other: &LogicVector) -> bool {
-        if let (Some(a), Some(b)) = (self.as_u128(), other.as_u128()) {
-            a == b
-        } else {
-            false
-        }
+        self.masks == other.masks
     }
 }
 
@@ -451,18 +480,6 @@ mod tests {
             prop_assert!(v.is_some());
             let v = v.unwrap();
             prop_assert_eq!(v, value as u128);
-        }
-
-        #[test]
-        fn atm_gen_mask(old in 0u8..129, new in 0u8..129) {
-            prop_assume!(old < new);
-            prop_assume!(old != 0);
-            prop_assume!(new != 0);
-            let mask = build_mask(old, new);
-            prop_assert_eq!(mask.trailing_zeros() as u8, old);
-            prop_assert_eq!(mask.leading_zeros() as u8, 128 - new);
-            prop_assert_eq!(mask.count_ones() as u8, new - old);
-            prop_assert_eq!(mask.count_zeros() as u8, 128 - new + old);
         }
 
         #[test]

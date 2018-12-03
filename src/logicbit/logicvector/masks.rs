@@ -23,6 +23,25 @@ pub struct Masks {
 }
 
 impl Masks {
+    pub fn get(&self, index: u8) -> Ieee1164 {
+        for m in self.iter() {
+            if m.1 >> index & 1 == 1 {
+                return m.0;
+            }
+        }
+        panic!("No bit set on {}", index)
+    }
+
+    pub fn set(&mut self, index: u8, value: Ieee1164) {
+        for m in self.iter_mut() {
+            if m.0 == value {
+                *m.1 |= 1 << index;
+            } else {
+                *m.1 &= !(1 << index);
+            }
+        }
+    }
+
     pub fn sanity_check(&self, width: u8) -> Result<(), SanityChecked> {
         for d in 0..128 {
             let mut has_one = false;
@@ -43,6 +62,14 @@ impl Masks {
         }
 
         Ok(())
+    }
+
+    pub fn iter(&self) -> Iter {
+        self.into_iter()
+    }
+
+    pub fn iter_mut(&mut self) -> IterMut {
+        self.into_iter()
     }
 }
 
