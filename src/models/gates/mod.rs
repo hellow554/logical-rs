@@ -40,8 +40,11 @@ macro_rules! create_simple_2i1o_gate {
     ($name:ident, $func:ident) => {
         #[derive(Debug, Default, Clone)] //TODO: remove Clone!
         pub struct $name {
+            /// First input port
             pub a: Port<Ieee1164, Input>,
+            /// Second input port
             pub b: Port<Ieee1164, Input>,
+            /// Output port
             pub z: Port<Ieee1164, Output>,
             _private: (),
         }

@@ -51,6 +51,17 @@ fn assert_width(width: u8) -> bool {
     width != 0 && width <= 128
 }
 
+/// A logicvector is an vector containing [`Ieee1164`] as values.
+///
+/// # Invariant
+///
+/// There are the following invariants for this struct.
+///
+///   1. The width is always not equals zero.
+///   2. The width is limited to 128.
+///
+/// If any of these limitations are violated a panic will occur.
+///
 #[derive(Debug, Clone)]
 pub struct LogicVector {
     masks: Masks,
@@ -58,6 +69,16 @@ pub struct LogicVector {
 }
 
 impl LogicVector {
+    /// Accepts a [`Ieee1164`] and set that value to the whole range of `width`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use logical::{Ieee1164, LogicVector};
+    /// let lv = LogicVector::from_ieee_value(Ieee1164::_0, 8);
+    /// assert_eq!(8, lv.width());
+    /// assert!(lv.is_000());
+    /// ```
     pub fn from_ieee_value(value: Ieee1164, width: u8) -> Self {
         assert!(assert_width(width));
         let mut s = Self {
@@ -69,6 +90,30 @@ impl LogicVector {
         s
     }
 
+    /// Tries to convert an integer value with a given width to a `Logicvector`.
+    ///
+    /// It will return `None` if the invariants are violated (e.g. the `width` is `0` or greater
+    /// than `128`), or the binary size of `value` is greater than `width`.
+    ///
+    /// # Examples
+    ///
+    /// This example is successful because the `width` (`8`) is greater than 0, less than 129 and
+    /// the bit representation of `42` (`0b101010`) fits into 8 bits.
+    ///
+    /// ```rust
+    /// use logical::LogicVector;
+    /// let lv = LogicVector::from_int_value(42, 8).unwrap();
+    /// assert_eq!(lv.as_u128(), Some(42));
+    /// ```
+    ///
+    /// This example will return `None`, because `42` (`0b101010`) does not fit into 5 bits, but
+    /// need 6 instead.
+    ///
+    /// ```rust
+    /// use logical::LogicVector;
+    /// let lv = LogicVector::from_int_value(42, 5);
+    /// assert!(lv.is_none());
+    /// ```
     pub fn from_int_value(value: u128, width: u8) -> Option<Self> {
         let zeros = value.leading_zeros() as u8;
         if assert_width(width) && width >= (128 - zeros) {
@@ -83,6 +128,12 @@ impl LogicVector {
         }
     }
 
+    /// Creates a LogicVector with the given width and all values are set to [`Ieee1164::_U`]
+    /// (undefined). It is a shortcut for
+    ///
+    /// ```text
+    /// LogicVector::from_ieee_value(Ieee1164::_U, width);
+    /// ```
     pub fn with_width(width: u8) -> Self {
         assert!(assert_width(width));
         Self::from_ieee_value(Ieee1164::default(), width)
@@ -90,15 +141,81 @@ impl LogicVector {
 }
 
 impl LogicVector {
+    /// Returns the width of this LogicVector.
+    ///
+    /// ```rust
+    /// # use logical::LogicVector;
+    /// assert_eq!(7, LogicVector::with_width(7).width());
+    /// ```
     pub fn width(&self) -> u8 {
         self.width
     }
 
+    /// Set's the width of this LogicVector. For further information see [`LogicVector::resize`].
+    /// This is a shortcut for
+    /// ```text
+    /// LogicVector::resize(new_width, Ieee1164::_U);
+    /// ```
     pub fn set_width(&mut self, new_width: u8) {
         self.resize(new_width, Ieee1164::_U);
         debug_assert_eq!(Ok(()), self.sanity_check());
     }
 
+    /// Resizes the LogicVector to `new_width`. There are three possible cases.
+    ///
+    ///  1. `new_width == self.width()`
+    ///     - nothing changes
+    ///  2. `new_width < self.width()`
+    ///     - The LogicVector will get cropped to the new size. The cropped values will be returned
+    ///       as a new LogicVector, whereas the width is equal to the difference between the old
+    ///       and new width.
+    ///  3. `new_width > self.width()`
+    ///     - The LogicVector will be set to the new_length and the new bits will be set to `value`.
+    ///
+    /// # Examples
+    ///
+    /// Using the same length will not change anything.
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let mut lv1 = LogicVector::from_int_value(42, 8).unwrap();
+    /// let lv2 = lv1.clone();
+    /// let cropped = lv1.resize(8, Ieee1164::_U);
+    ///
+    /// assert!(cropped.is_none());
+    /// assert_eq!(lv1, lv2);
+    /// ```
+    ///
+    /// Making the LogicVector smaller will return the cropped values.
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let mut lv = LogicVector::from_int_value(58, 7).unwrap();
+    /// let cropped = lv.resize(4, Ieee1164::_U).unwrap();
+    ///
+    /// assert_eq!(4, lv.width());
+    /// assert_eq!(3, cropped.width());
+    /// assert_eq!(Some(0b011), cropped.as_u128());
+    /// assert_eq!(Some(0b1010), lv.as_u128());
+    /// ```
+    ///
+    /// Making the LogicVector greater will set the upper most bits to `value`.
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let mut lv = LogicVector::from_int_value(42, 6).unwrap();
+    /// lv.resize(8, Ieee1164::_1);
+    ///
+    /// assert_eq!(Some(0b11101010), lv.as_u128());
+    /// ```
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let mut lv = LogicVector::from_int_value(42, 8).unwrap();
+    /// lv.resize(10, Ieee1164::_1);
+    ///
+    /// assert_eq!(Some(0b1100101010), lv.as_u128());
+    /// ```
     pub fn resize(&mut self, new_width: u8, value: Ieee1164) -> Option<LogicVector> {
         fn resize_mask(old: u8, new: u8) -> u128 {
             match (old, new) {
@@ -151,6 +268,18 @@ impl LogicVector {
         res
     }
 
+    /// Set's every bit to `value`.
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let mut lv = LogicVector::with_width(8);
+    /// assert!(lv.is_UUU());
+    /// assert!(!lv.is_ZZZ());
+    ///
+    /// lv.set_all_to(Ieee1164::_Z);
+    /// assert!(!lv.is_UUU());
+    /// assert!(lv.is_ZZZ());
+    /// ```
     pub fn set_all_to(&mut self, value: Ieee1164) {
         for mask in &mut self.masks {
             *mask.1 = if value == mask.0 {
@@ -163,12 +292,28 @@ impl LogicVector {
     }
 
     //TODO introduce proper error type
+    //TODO documentation
     pub fn set_int_value(&mut self, value: u128) -> Result<(), ()> {
         std::mem::replace(self, Self::from_int_value(value, self.width()).ok_or(())?);
         Ok(())
     }
 
-    // TODO: maybe not pub?
+    /// Tries to convert this to a `u128`. This will fail if the LogicVector contains any other bits
+    /// than [`Ieee1164::_0`] or [`Ieee1164::_1`].
+    ///
+    /// ```rust
+    /// # use logical::LogicVector;
+    /// let lv = LogicVector::from_int_value(55, 8).unwrap();
+    /// assert_eq!(Some(55), lv.as_u128());
+    /// ```
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let mut lv = LogicVector::from_int_value(55, 8).unwrap();
+    /// assert_eq!(Some(55), lv.as_u128());
+    /// lv.set(7, Ieee1164::_X);
+    /// assert_eq!(None, lv.as_u128());
+    /// ```
     pub fn as_u128(&self) -> Option<u128> {
         if self.has_UXZ() {
             None
@@ -334,67 +479,82 @@ impl PartialEq<u128> for LogicVector {
     }
 }
 
+macro_rules! doc_comment {
+    ($x:expr, $($tt:tt)*) => {
+        #[doc = $x]
+        $($tt)*
+    };
+}
+
+macro_rules! gen_has {
+    ($name:ident, $value:expr) => {
+        doc_comment! {
+                                    concat!("This is a shortcut for [`LogicVector::has_ieee1164`].
+
+```text
+LogicVector::has_ieee1164(", stringify!($value), ")
+```"),
+            pub fn $name(&self) -> bool {
+                self.has_ieee1164($value)
+            }
+        }
+    };
+}
+
+macro_rules! gen_is {
+    ($name:ident, $value:expr) => {
+        doc_comment! {
+                                    concat!("This is a shortcut for [`LogicVector::is_ieee1164`].
+
+```text
+LogicVector::is_ieee1164(", stringify!($value), ");
+```"),
+            pub fn $name(&self) -> bool {
+                self.is_ieee1164($value)
+            }
+        }
+    };
+}
+
 #[allow(non_snake_case)]
 impl LogicVector {
-    fn contains(&self, value: Ieee1164) -> bool {
+    /// Checks if any bit is set to `value`.
+    ///
+    /// Returns true if so, false if that bit is not present in this LogicVector.
+    pub fn has_ieee1164(&self, value: Ieee1164) -> bool {
         self.masks[value] != 0
     }
 
-    fn is_only(&self, value: Ieee1164) -> bool {
-        self.masks[value] == std::u128::MAX & gen_mask_from_width(self.width)
-    }
-
-    pub fn has_U(&self) -> bool {
-        self.contains(Ieee1164::Uninitialized)
-    }
-
-    pub fn has_X(&self) -> bool {
-        self.contains(Ieee1164::Strong(Ieee1164Value::Unknown))
-    }
-
-    pub fn has_0(&self) -> bool {
-        self.contains(Ieee1164::Strong(Ieee1164Value::Zero))
-    }
-
-    pub fn has_1(&self) -> bool {
-        self.contains(Ieee1164::Strong(Ieee1164Value::One))
-    }
-
-    pub fn has_Z(&self) -> bool {
-        self.contains(Ieee1164::HighImpedance)
-    }
-
-    pub fn has_W(&self) -> bool {
-        self.contains(Ieee1164::Weak(Ieee1164Value::Unknown))
-    }
-
-    pub fn has_D(&self) -> bool {
-        self.contains(Ieee1164::DontCare)
-    }
-
-    pub fn has_L(&self) -> bool {
-        self.contains(Ieee1164::Weak(Ieee1164Value::Zero))
-    }
-
-    pub fn has_H(&self) -> bool {
-        self.contains(Ieee1164::Weak(Ieee1164Value::One))
+    /// Checks if all bits are set to `value`.
+    ///
+    /// Returns true if so, false if even one single bit is not set to `value` in this LogicVector.
+    pub fn is_ieee1164(&self, value: Ieee1164) -> bool {
+        self.masks[value] == std::u128::MAX & mask_from_width(self.width)
     }
 
     pub fn has_UXZ(&self) -> bool {
-        self.has_U() || self.has_D() || self.has_W() || self.has_X() || self.has_Z()
+        self.has_U() || self.has_X() || self.has_W() || self.has_Z() || self.has_D()
     }
 
-    pub fn is_000(&self) -> bool {
-        self.is_only(Ieee1164::_0)
-    }
+    gen_has!(has_U, Ieee1164::_U);
+    gen_has!(has_X, Ieee1164::_X);
+    gen_has!(has_0, Ieee1164::_0);
+    gen_has!(has_1, Ieee1164::_1);
+    gen_has!(has_W, Ieee1164::_W);
+    gen_has!(has_H, Ieee1164::_H);
+    gen_has!(has_L, Ieee1164::_L);
+    gen_has!(has_Z, Ieee1164::_Z);
+    gen_has!(has_D, Ieee1164::_D);
 
-    pub fn is_111(&self) -> bool {
-        self.is_only(Ieee1164::_1)
-    }
-
-    pub fn is_ZZZ(&self) -> bool {
-        self.is_only(Ieee1164::_Z)
-    }
+    gen_is!(is_UUU, Ieee1164::_U);
+    gen_is!(is_XXX, Ieee1164::_X);
+    gen_is!(is_000, Ieee1164::_0);
+    gen_is!(is_111, Ieee1164::_1);
+    gen_is!(is_WWW, Ieee1164::_W);
+    gen_is!(is_HHH, Ieee1164::_H);
+    gen_is!(is_LLL, Ieee1164::_L);
+    gen_is!(is_ZZZ, Ieee1164::_Z);
+    gen_is!(is_DDD, Ieee1164::_D);
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]

@@ -10,19 +10,21 @@ use crate::port::portconnector::PortConnector;
 use crate::Ieee1164;
 use std::sync::Weak;
 
+#[allow(unused)]
+use crate::{models::gates::AndGate, Signal};
+
+/// A `Port` is the connection between a model (e.g. an [`AndGate`]) and a signal.
+///
+/// A `Port` has a Direction, either [`Input`], [`Output`] or [`InOut`]. Depending on the direction
+/// you can read, write or do both on the `Port`. You can't for example read on an [`Output`] port,
+/// but only write to it.
+///
+/// You can `clone` a `Port` as often as you want, or even [`drop`], it doesn't affect other ports.
 #[derive(Debug, Clone)]
 pub struct Port<T, D: PortDirection> {
     pub(crate) inner: Arc<InnerPort<T>>,
     _marker: PhantomData<D>,
 }
-
-impl<T, D: PortDirection> PartialEq for Port<T, D> {
-    fn eq(&self, other: &Port<T, D>) -> bool {
-        Arc::ptr_eq(&self.inner, &other.inner)
-    }
-}
-
-impl<T, D: PortDirection> Eq for Port<T, D> {}
 
 impl<T: Default, D: PortDirection> Default for Port<T, D> {
     fn default() -> Self {
@@ -31,6 +33,39 @@ impl<T: Default, D: PortDirection> Default for Port<T, D> {
 }
 
 impl<T, D: PortDirection> Port<T, D> {
+    /// Create a new Port with an inner value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use logical::Port;
+    /// use logical::direction::Input;
+    ///
+    /// let port = Port::<u32, Input>::new(3u32);
+    /// assert_eq!(3u32, port.value());
+    /// ```
+    ///
+    /// You can't however read the value of an [`Output`] `Port`.
+    ///
+    /// ```rust,compile_fail,E0599
+    /// use logical::Port;
+    /// use logical::direction::Output;
+    ///
+    /// let port = Port::<u32, Output>::new(3u32);
+    /// assert_eq!(3u32, port.value());
+    /// ```
+    ///
+    /// But of course, you can do both an an [`InOut`] `Port`.
+    ///
+    /// ```rust
+    /// use logical::Port;
+    /// use logical::direction::InOut;
+    ///
+    /// let mut port = Port::<u32, InOut>::new(3u32);
+    /// assert_eq!(3u32, port.value());
+    /// port.replace(5);
+    /// assert_eq!(5, port.value());
+    /// ```
     pub fn new(value: T) -> Self {
         Port {
             inner: Arc::new(InnerPort {
@@ -41,13 +76,39 @@ impl<T, D: PortDirection> Port<T, D> {
         }
     }
 
+    /// Create a Port with an already exiting `InnerPort`. This is only useful, if you have to
+    /// convert a Port from one Direction to another and can't use the `TryFrom` trait.
+    /// Otherwise please you clone!!
     pub(crate) fn new_with_arc(arc: Arc<InnerPort<T>>) -> Self {
         Port {
             inner: arc,
             _marker: PhantomData,
         }
     }
+}
 
+impl<T, D> Port<T, D>
+where
+    D: PortDirection,
+{
+    pub(crate) fn _connect(&mut self, _signal: WeakSignal<T>) {
+        //FIXME
+        //std::mem::replace(&mut self.inner.signal, signal);
+    }
+
+    /// Returns whether this `Port` is connected to a [`Signal`].
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, Port, Signal};
+    /// # use logical::direction::Output;
+    /// let port = Port::<_, Output>::new(Ieee1164::_U);
+    /// assert!(!port.is_connected());
+    ///
+    /// let mut signal = Signal::default();
+    /// signal.connect(&port);
+    /// //assert!(port.is_connected());
+    /// ```
+    // FIXME!
     pub fn is_connected(&self) -> bool {
         self.inner.signal.upgrade().is_some()
     }
@@ -59,6 +120,15 @@ where
     W: MaybeWrite,
     Dir<Read, W>: PortDirection,
 {
+    /// Returns a copy of the inner value. `Clone` is needed, because on how the values are
+    /// internally stored. If `T` is not `Clone` use [`Port::with_value`].
+    ///
+    /// ```rust
+    /// # use logical::Port;
+    /// # use logical::direction::Input;
+    /// let port = Port::<_, Input>::new(5u32);
+    /// assert_eq!(5, port.value());
+    /// ```
     pub fn value(&self) -> T {
         self.inner.value.read().unwrap().clone()
     }
@@ -69,6 +139,15 @@ where
     W: MaybeWrite,
     Dir<Read, W>: PortDirection,
 {
+    /// Accepts a [`FnOnce`] which accepts `&T` and executes it with the inner value.
+    /// This function is useful, if `T` does not implement `Clone`.
+    ///
+    /// ```rust
+    /// # use logical::Port;
+    /// # use logical::direction::Input;
+    /// let port = Port::<_, Input>::new(5u32);
+    /// port.with_value(|value| assert_eq!(&5, value));
+    /// ```
     pub fn with_value<F: FnOnce(&T)>(&self, f: F) {
         f(&self.inner.value.read().unwrap());
     }
@@ -79,10 +158,32 @@ where
     R: MaybeRead,
     Dir<R, Write>: PortDirection,
 {
-    pub fn replace(&mut self, value: T) {
-        *self.inner.value.write().unwrap() = value;
+    /// Replaces the internal value with `value` and returns the old value.
+    ///
+    /// If you intend to modify the inner value, use `with_value_mut` instead.
+    ///
+    /// ```rust
+    /// # use logical::Port;
+    /// # use logical::direction::Output;
+    /// let mut port = Port::<_, Output>::new(5u32);
+    /// port.replace(9u32);
+    /// ```
+    pub fn replace(&mut self, value: T) -> T {
+        std::mem::replace(&mut self.inner.value.write().unwrap(), value)
     }
 
+    /// Accepts a `FnOnce` which accepts a `&mut T`, so you can modify the inner values, instead of
+    /// replacing it.
+    ///
+    /// ```rust
+    /// # use logical::Port;
+    /// # use logical::direction::Output;
+    /// let mut port = Port::<_, Output>::new(String::from("ABC"));
+    /// port.with_value_mut(|value| {
+    ///     value.push('D');
+    ///     assert_eq!("ABCD", value);
+    /// });
+    /// ```
     pub fn with_value_mut<F: FnOnce(&mut T)>(&mut self, f: F) {
         f(&mut self.inner.value.write().unwrap());
     }
@@ -165,6 +266,14 @@ where
         }
     }
 }
+
+impl<T, D: PortDirection> PartialEq for Port<T, D> {
+    fn eq(&self, other: &Port<T, D>) -> bool {
+        Arc::ptr_eq(&self.inner, &other.inner)
+    }
+}
+
+impl<T, D: PortDirection> Eq for Port<T, D> {}
 
 impl<D> IterValues for Port<Ieee1164, D>
 where

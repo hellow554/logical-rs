@@ -72,13 +72,13 @@ impl<T> Signal<T> {
         if D::IS_INPUT || D::IS_INOUT {
             let connector = port.try_into().unwrap();
             if !out_guard.contains(&connector) {
-                out_guard.push(connector)
+                out_guard.push(connector);
             }
         }
         if D::IS_OUTPUT || D::IS_INOUT {
             let connector = port.try_into().unwrap();
             if !in_guard.contains(&connector) {
-                in_guard.push(connector)
+                in_guard.push(connector);
             }
         }
 

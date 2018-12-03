@@ -12,12 +12,24 @@ use std::path::Path;
 use crate::logicbit::LogicVector;
 use chrono::Local;
 
+/// A trait for iterating over the containing [`Port`]s of a `Model`.
+///
+/// Instead of using (non-exiting) reflection, you have to pass all Ports you want to export to the
+/// argument `FnMut`.
+///
+/// This is mainly used for dumping purposes, because this operations can be quiet expensive.
+//TODO: Is this really needed? Let's rethink dumping values.
 pub trait IterPorts {
+    /// See [`IterPorts] for a good description.
+    ///
+    /// The implementor should pass a short, descripting `&str` as long with the `Port`.
+    /// Currently only [`Ieee1164`] is supported, in the future other values will be supported too.
     fn iter_ports<F>(&self, f: F)
     where
         F: FnMut(&str, &Port<Ieee1164, Output>);
 }
 
+//TODO: Is this really needed? Let's rethink dumping values.
 pub trait IterValues {
     fn iter_values<F>(&self, f: F)
     where

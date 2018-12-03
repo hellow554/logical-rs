@@ -1,4 +1,5 @@
 #![feature(nll, try_from, vec_remove_item)]
+#![warn(missing_docs)]
 
 //! Logical is a digital network simulator. It is named after the german word "Logical" which
 //! describes a puzzle that follows the rules of logic.
@@ -90,10 +91,20 @@ pub use self::logicbit::{Ieee1164, Ieee1164Value, LogicVector, Resolve};
 pub use self::port::Port;
 pub use self::signal::Signal;
 
+#[allow(unused)]
+use self::direction::{InOut, Input, Output, PortDirection};
+
+/// Declares typical structs and trait that are used for indicating directions, e.g. [`Output`],
+/// [`Input`], [`InOut`] or [`PortDirection`].
 pub mod direction {
     pub use super::port::{Dir, InOut, Input, MaybeRead, MaybeWrite, Off, Output, PortDirection, Read, Write};
 }
 
+/// Simple update trait for signalling passing values from input to an output. Of course the actual
+/// behavior depends on the actual struct that implement this.
 pub trait Updateable {
+    /// When this trait function is called you should perform any action necessary to update the
+    /// struct, e.g. reading input values and updating output values. These changes should be
+    /// instant.
     fn update(&mut self);
 }
