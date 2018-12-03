@@ -489,7 +489,7 @@ macro_rules! doc_comment {
 macro_rules! gen_has {
     ($name:ident, $value:expr) => {
         doc_comment! {
-                                    concat!("This is a shortcut for [`LogicVector::has_ieee1164`].
+            concat!("This is a shortcut for [`LogicVector::has_ieee1164`].
 
 ```text
 LogicVector::has_ieee1164(", stringify!($value), ")
@@ -504,7 +504,7 @@ LogicVector::has_ieee1164(", stringify!($value), ")
 macro_rules! gen_is {
     ($name:ident, $value:expr) => {
         doc_comment! {
-                                    concat!("This is a shortcut for [`LogicVector::is_ieee1164`].
+            concat!("This is a shortcut for [`LogicVector::is_ieee1164`].
 
 ```text
 LogicVector::is_ieee1164(", stringify!($value), ");
