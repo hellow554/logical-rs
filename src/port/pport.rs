@@ -7,8 +7,8 @@ use super::InnerPort;
 use crate::direction::{Dir, InOut, Input, MaybeRead, MaybeWrite, Output, PortDirection, Read, Write};
 use crate::dump::IterValues;
 use crate::port::portconnector::PortConnector;
+use crate::signal::WeakSignal;
 use crate::Ieee1164;
-use std::sync::Weak;
 
 #[allow(unused)]
 use crate::{models::gates::AndGate, Signal};
@@ -70,7 +70,7 @@ impl<T, D: PortDirection> Port<T, D> {
         Port {
             inner: Arc::new(InnerPort {
                 value: RwLock::new(value),
-                signal: Weak::new(),
+                signal: WeakSignal::default(),
             }),
             _marker: PhantomData,
         }
@@ -110,7 +110,7 @@ where
     /// ```
     // FIXME!
     pub fn is_connected(&self) -> bool {
-        self.inner.signal.upgrade().is_some()
+        self.inner.signal.is_strong()
     }
 }
 

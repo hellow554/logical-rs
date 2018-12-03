@@ -1,17 +1,31 @@
-use std::sync::{Arc, RwLock};
-
-use crate::logicbit::Resolve;
-
-use crate::direction::{Input, Output};
-
-use crate::port::PortConnector;
-use crate::port::PortDirection;
-use crate::{Port, Updateable};
 use std::convert::TryInto;
+use std::sync::{Arc, RwLock, Weak};
+
+use crate::direction::{Input, Output, PortDirection};
+use crate::logicbit::Resolve;
+use crate::port::PortConnector;
+use crate::{Port, Updateable};
 
 #[derive(Debug, Clone)]
 pub struct Signal<T> {
     inner: Arc<InnerSignal<T>>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct WeakSignal<T> {
+    inner: Weak<InnerSignal<T>>,
+}
+
+impl<T> Default for WeakSignal<T> {
+    fn default() -> Self {
+        WeakSignal { inner: Weak::new() }
+    }
+}
+
+impl<T> WeakSignal<T> {
+    pub(crate) fn is_strong(&self) -> bool {
+        self.inner.upgrade().is_some()
+    }
 }
 
 #[derive(Debug)]
