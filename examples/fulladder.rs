@@ -91,8 +91,8 @@ fn main() {
     circuit.add_updater(&xor2);
     circuit.add_updater(&or);
 
-    const _0: Ieee1164 = Ieee1164::Strong(Ieee1164Value::Zero);
-    const _1: Ieee1164 = Ieee1164::Strong(Ieee1164Value::One);
+    const _0: Ieee1164 = Ieee1164::_0; // this helps to keep the
+    const _1: Ieee1164 = Ieee1164::_1; // matrix clean and short
 
     const VALUES: [[Ieee1164; 5]; 8] = [
         [_0, _0, _0, _0, _0],

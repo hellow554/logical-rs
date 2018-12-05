@@ -17,9 +17,9 @@ impl Updateable for TriBuffer {
         self.z.replace(if self.s.value().is_1H() {
             self.a.value()
         } else if self.s.value().is_0L() {
-            Ieee1164::HighImpedance
+            Ieee1164::_Z
         } else {
-            Ieee1164::Strong(Ieee1164Value::Unknown)
+            Ieee1164::_X
         });
     }
 }

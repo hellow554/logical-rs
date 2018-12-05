@@ -78,15 +78,15 @@ impl Index<Ieee1164> for Masks {
 
     fn index(&self, index: Ieee1164) -> &u128 {
         match index {
-            Ieee1164::Uninitialized => &self._U,
-            Ieee1164::Strong(Ieee1164Value::Unknown) => &self._X,
-            Ieee1164::Strong(Ieee1164Value::One) => &self._1,
-            Ieee1164::Strong(Ieee1164Value::Zero) => &self._0,
-            Ieee1164::Weak(Ieee1164Value::Unknown) => &self._W,
-            Ieee1164::Weak(Ieee1164Value::One) => &self._H,
-            Ieee1164::Weak(Ieee1164Value::Zero) => &self._L,
-            Ieee1164::HighImpedance => &self._Z,
-            Ieee1164::DontCare => &self._D,
+            Ieee1164::_U => &self._U,
+            Ieee1164::_X => &self._X,
+            Ieee1164::_1 => &self._1,
+            Ieee1164::_0 => &self._0,
+            Ieee1164::_W => &self._W,
+            Ieee1164::_H => &self._H,
+            Ieee1164::_L => &self._L,
+            Ieee1164::_Z => &self._Z,
+            Ieee1164::_D => &self._D,
         }
     }
 }
@@ -94,15 +94,15 @@ impl Index<Ieee1164> for Masks {
 impl IndexMut<Ieee1164> for Masks {
     fn index_mut(&mut self, index: Ieee1164) -> &mut u128 {
         match index {
-            Ieee1164::Uninitialized => &mut self._U,
-            Ieee1164::Strong(Ieee1164Value::Unknown) => &mut self._X,
-            Ieee1164::Strong(Ieee1164Value::One) => &mut self._1,
-            Ieee1164::Strong(Ieee1164Value::Zero) => &mut self._0,
-            Ieee1164::Weak(Ieee1164Value::Unknown) => &mut self._W,
-            Ieee1164::Weak(Ieee1164Value::One) => &mut self._H,
-            Ieee1164::Weak(Ieee1164Value::Zero) => &mut self._L,
-            Ieee1164::HighImpedance => &mut self._Z,
-            Ieee1164::DontCare => &mut self._D,
+            Ieee1164::_U => &mut self._U,
+            Ieee1164::_X => &mut self._X,
+            Ieee1164::_1 => &mut self._1,
+            Ieee1164::_0 => &mut self._0,
+            Ieee1164::_W => &mut self._W,
+            Ieee1164::_H => &mut self._H,
+            Ieee1164::_L => &mut self._L,
+            Ieee1164::_Z => &mut self._Z,
+            Ieee1164::_D => &mut self._D,
         }
     }
 }

@@ -110,32 +110,20 @@ create_simple_1i1o_gate!(Inverter, inv);
 
 fn weak_buf(a: Ieee1164) -> Ieee1164 {
     match a {
-        Ieee1164::Uninitialized
-        | Ieee1164::Strong(Ieee1164Value::Unknown)
-        | Ieee1164::Weak(Ieee1164Value::Unknown)
-        | Ieee1164::DontCare => Ieee1164::Weak(Ieee1164Value::Unknown),
-        Ieee1164::Strong(Ieee1164Value::One) | Ieee1164::Weak(Ieee1164Value::One) => Ieee1164::Weak(Ieee1164Value::One),
-        Ieee1164::Strong(Ieee1164Value::Zero) | Ieee1164::Weak(Ieee1164Value::Zero) => {
-            Ieee1164::Weak(Ieee1164Value::Zero)
-        }
-        Ieee1164::HighImpedance => Ieee1164::HighImpedance,
+        Ieee1164::_U | Ieee1164::_X | Ieee1164::_W | Ieee1164::_D => Ieee1164::_W,
+        Ieee1164::_1 | Ieee1164::_H => Ieee1164::_H,
+        Ieee1164::_0 | Ieee1164::_L => Ieee1164::_L,
+        Ieee1164::_Z => Ieee1164::_Z,
     }
 }
 create_simple_1i1o_gate!(WeakBuffer, weak_buf);
 
 fn weak_inv(a: Ieee1164) -> Ieee1164 {
     match a {
-        Ieee1164::Uninitialized
-        | Ieee1164::Strong(Ieee1164Value::Unknown)
-        | Ieee1164::Weak(Ieee1164Value::Unknown)
-        | Ieee1164::DontCare => Ieee1164::Weak(Ieee1164Value::Unknown),
-        Ieee1164::Strong(Ieee1164Value::One) | Ieee1164::Weak(Ieee1164Value::One) => {
-            Ieee1164::Weak(Ieee1164Value::Zero)
-        }
-        Ieee1164::Strong(Ieee1164Value::Zero) | Ieee1164::Weak(Ieee1164Value::Zero) => {
-            Ieee1164::Weak(Ieee1164Value::One)
-        }
-        Ieee1164::HighImpedance => Ieee1164::HighImpedance,
+        Ieee1164::_U | Ieee1164::_X | Ieee1164::_W | Ieee1164::_D => Ieee1164::_W,
+        Ieee1164::_1 | Ieee1164::_H => Ieee1164::_L,
+        Ieee1164::_0 | Ieee1164::_L => Ieee1164::_H,
+        Ieee1164::_Z => Ieee1164::_Z,
     }
 }
 create_simple_1i1o_gate!(WeakInverter, weak_inv);

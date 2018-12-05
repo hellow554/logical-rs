@@ -7,13 +7,13 @@ use logical::models::{
 use logical::{Circuit, Ieee1164, Ieee1164Value, Signal};
 
 fn main() {
-    let mut val = Ieee1164::Strong(Ieee1164Value::One);
+    let mut val = Ieee1164::_1;
 
     let xor = XorGate::default();
     let mux = Mux::default();
     let mut input1 = Switch::new_with_value(val);
-    let input2 = Switch::new_with_value(Ieee1164::Strong(Ieee1164Value::One));
-    let mut mux_switch = Switch::new_with_value(Ieee1164::Strong(Ieee1164Value::Zero));
+    let input2 = Switch::new_with_value(Ieee1164::_1);
+    let mut mux_switch = Switch::new_with_value(Ieee1164::_0);
     let output = Led::default();
 
     let mut sig_input_signal = Signal::new();
@@ -49,7 +49,7 @@ fn main() {
     circuit.tick();
     circuit.tick();
     circuit.tick();
-    mux_switch.set_value(Ieee1164::Strong(Ieee1164Value::One));
+    mux_switch.set_value(Ieee1164::_1);
     circuit.tick();
 
     let mut dumper = Vcd::new("VCD Example");

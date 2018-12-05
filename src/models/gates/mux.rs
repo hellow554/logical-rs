@@ -20,7 +20,7 @@ impl Updateable for Mux {
         } else if self.s.value().is_0L() {
             self.a.value()
         } else {
-            Ieee1164::Strong(Ieee1164Value::Unknown)
+            Ieee1164::_X
         });
     }
 }

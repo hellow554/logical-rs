@@ -203,7 +203,7 @@ mod tests {
             assert_eq!(Ieee1164::Uninitialized, i.value());
         }
 
-        let val = Ieee1164::Strong(Ieee1164Value::One);
+        let val = Ieee1164::_1;
         p.replace(val);
         s.update();
         assert_eq!(val, i.value());
@@ -216,8 +216,8 @@ mod tests {
 
     #[test]
     fn signal_after_disconnect() {
-        let val_a = Ieee1164::Strong(Ieee1164Value::One);
-        let val_b = Ieee1164::Strong(Ieee1164Value::Zero);
+        let val_a = Ieee1164::_1;
+        let val_b = Ieee1164::_0;
         let mut p = Port::<_, InOut>::new(val_a);
         let o = Port::<_, Input>::default();
         let mut s = Signal::new();
@@ -234,11 +234,11 @@ mod tests {
 
     #[test]
     fn signal_multiple_ports() {
-        let val_a = Ieee1164::Weak(Ieee1164Value::One);
-        let val_b = Ieee1164::Strong(Ieee1164Value::Zero);
+        let val_a = Ieee1164::_H;
+        let val_b = Ieee1164::_0;
         let p1 = Port::<_, InOut>::new(val_a);
         let p2 = Port::<_, InOut>::new(val_b);
-        let o = Port::<_, Input>::new(Ieee1164::DontCare);
+        let o = Port::<_, Input>::new(Ieee1164::_D);
         let mut s = Signal::new();
 
         s.connect(&p1).unwrap();
@@ -252,8 +252,8 @@ mod tests {
     fn signal_port_out_of_scope() {
         let mut s = Signal::new();
 
-        let val_a = Ieee1164::Strong(Ieee1164Value::One);
-        let val_b = Ieee1164::Strong(Ieee1164Value::Zero);
+        let val_a = Ieee1164::_1;
+        let val_b = Ieee1164::_0;
 
         let p1 = Port::<_, Output>::new(val_a);
         let o = Port::<_, Input>::default();
@@ -275,7 +275,7 @@ mod tests {
     fn disallow_multiple_connects() {
         let mut s = Signal::new();
 
-        let val = Ieee1164::Strong(Ieee1164Value::One);
+        let val = Ieee1164::_1;
         let p = Port::<_, InOut>::new(val);
         s.connect(&p).unwrap();
         s.connect(&p).unwrap();

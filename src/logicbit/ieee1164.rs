@@ -72,15 +72,15 @@ impl TryFrom<char> for Ieee1164 {
 
     fn try_from(c: char) -> Result<Self, ()> {
         Ok(match c.to_ascii_lowercase() {
-            'u' => Ieee1164::Uninitialized,
-            'x' => Ieee1164::Strong(Ieee1164Value::Unknown),
-            '0' => Ieee1164::Strong(Ieee1164Value::Zero),
-            '1' => Ieee1164::Strong(Ieee1164Value::One),
-            'z' => Ieee1164::HighImpedance,
-            'w' => Ieee1164::Weak(Ieee1164Value::Unknown),
-            'l' => Ieee1164::Weak(Ieee1164Value::Zero),
-            'h' => Ieee1164::Weak(Ieee1164Value::One),
-            '*' | '-' | 'd' => Ieee1164::DontCare,
+            'u' => Ieee1164::_U,
+            'x' => Ieee1164::_X,
+            '0' => Ieee1164::_0,
+            '1' => Ieee1164::_1,
+            'z' => Ieee1164::_Z,
+            'w' => Ieee1164::_W,
+            'l' => Ieee1164::_L,
+            'h' => Ieee1164::_H,
+            '*' | '-' | 'd' => Ieee1164::_D,
             _ => return Err(()),
         })
     }
@@ -89,15 +89,15 @@ impl TryFrom<char> for Ieee1164 {
 impl From<Ieee1164> for char {
     fn from(i: Ieee1164) -> Self {
         match i {
-            Ieee1164::Uninitialized => 'U',
-            Ieee1164::Strong(Ieee1164Value::Unknown) => 'X',
-            Ieee1164::Strong(Ieee1164Value::Zero) => '0',
-            Ieee1164::Strong(Ieee1164Value::One) => '1',
-            Ieee1164::HighImpedance => 'Z',
-            Ieee1164::Weak(Ieee1164Value::Unknown) => 'W',
-            Ieee1164::Weak(Ieee1164Value::Zero) => 'L',
-            Ieee1164::Weak(Ieee1164Value::One) => 'H',
-            Ieee1164::DontCare => '-',
+            Ieee1164::_U => 'U',
+            Ieee1164::_X => 'X',
+            Ieee1164::_0 => '0',
+            Ieee1164::_1 => '1',
+            Ieee1164::_Z => 'Z',
+            Ieee1164::_W => 'W',
+            Ieee1164::_L => 'L',
+            Ieee1164::_H => 'H',
+            Ieee1164::_D => '-',
         }
     }
 }
@@ -239,62 +239,62 @@ impl Ieee1164 {
         !(self.is_1H() || self.is_0L())
     }
 
-    /// Checks whether this is either [`Ieee1164::_0`], [`Ieee1164::_1`]
+    /// Checks whether this is either [`Ieee1164::_0`] or [`Ieee1164::_1`]
     pub fn is_01(self) -> bool {
         self.is_0() || self.is_1()
     }
 
-    /// Checks whether this is either [`Ieee1164::_1`], [`Ieee1164::_H`]
+    /// Checks whether this is either [`Ieee1164::_1`] or [`Ieee1164::_H`]
     pub fn is_1H(self) -> bool {
         self.is_1() || self.is_H()
     }
 
-    /// Checks whether this is either [`Ieee1164::_0`], [`Ieee1164::_L`]
+    /// Checks whether this is either [`Ieee1164::_0`] or [`Ieee1164::_L`]
     pub fn is_0L(self) -> bool {
         self.is_0() || self.is_L()
     }
 
-    /// Checks whether this is either [`Ieee1164::_U`]
+    /// Checks whether this is [`Ieee1164::_U`]
     pub fn is_U(self) -> bool {
         self == _U
     }
 
-    /// Checks whether this is either [`Ieee1164::_X`]
+    /// Checks whether this is [`Ieee1164::_X`]
     pub fn is_X(self) -> bool {
         self == _X
     }
 
-    /// Checks whether this is either [`Ieee1164::_0`]
+    /// Checks whether this is [`Ieee1164::_0`]
     pub fn is_0(self) -> bool {
         self == _0
     }
 
-    /// Checks whether this is either [`Ieee1164::_1`]
+    /// Checks whether this is [`Ieee1164::_1`]
     pub fn is_1(self) -> bool {
         self == _1
     }
 
-    /// Checks whether this is either [`Ieee1164::_Z`]
+    /// Checks whether this is [`Ieee1164::_Z`]
     pub fn is_Z(self) -> bool {
         self == _Z
     }
 
-    /// Checks whether this is either [`Ieee1164::_W`]
+    /// Checks whether this is [`Ieee1164::_W`]
     pub fn is_W(self) -> bool {
         self == _W
     }
 
-    /// Checks whether this is either [`Ieee1164::_L`]
+    /// Checks whether this is [`Ieee1164::_L`]
     pub fn is_L(self) -> bool {
         self == _L
     }
 
-    /// Checks whether this is either [`Ieee1164::_H`]
+    /// Checks whether this is [`Ieee1164::_H`]
     pub fn is_H(self) -> bool {
         self == _H
     }
 
-    /// Checks whether this is either [`Ieee1164::_D`]
+    /// Checks whether this is [`Ieee1164::_D`]
     pub fn is_D(self) -> bool {
         self == _D
     }
@@ -324,7 +324,8 @@ mod tests {
 
     #[test]
     fn not() {
-        //TODO
+        let a = Ieee1164::_1;
+        assert_eq!(Ieee1164::_0, !a);
     }
 
     #[test]
