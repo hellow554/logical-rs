@@ -14,4 +14,12 @@ impl VectorInput {
             _private: (),
         }
     }
+
+    /// Creates this input with the given [`LogicVector`] as inner value.
+    pub fn with_logicvector(lv: LogicVector) -> Self {
+        Self {
+            port: Port::new(lv),
+            _private: (),
+        }
+    }
 }

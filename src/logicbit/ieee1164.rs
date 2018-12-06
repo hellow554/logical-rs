@@ -353,4 +353,19 @@ mod tests {
         assert!(Ieee1164::_D.is_UXZ());
         assert!(Ieee1164::_X.is_UXZ());
     }
+
+    #[test]
+    fn check_associated_consts() {
+        // this testcase seems useless, but I want to make sure, that the associated consts do match
+        // the proposed values!
+        assert_eq!(Ieee1164::_U, Ieee1164::Uninitialized);
+        assert_eq!(Ieee1164::_X, Ieee1164::Strong(Ieee1164Value::Unknown));
+        assert_eq!(Ieee1164::_1, Ieee1164::Strong(Ieee1164Value::One));
+        assert_eq!(Ieee1164::_0, Ieee1164::Strong(Ieee1164Value::Zero));
+        assert_eq!(Ieee1164::_W, Ieee1164::Weak(Ieee1164Value::Unknown));
+        assert_eq!(Ieee1164::_H, Ieee1164::Weak(Ieee1164Value::One));
+        assert_eq!(Ieee1164::_L, Ieee1164::Weak(Ieee1164Value::Zero));
+        assert_eq!(Ieee1164::_Z, Ieee1164::HighImpedance);
+        assert_eq!(Ieee1164::_D, Ieee1164::DontCare);
+    }
 }

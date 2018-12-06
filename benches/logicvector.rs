@@ -12,7 +12,7 @@ const NITER: u128 = 10_000;
 fn create_from_int(b: &mut Bencher) {
     b.iter(|| {
         for i in 0..NITER {
-            bb(LogicVector::from_int_value(i, 128));
+            bb(LogicVector::from_int(i, 128));
         }
     });
 }
@@ -48,7 +48,7 @@ fn create_width(b: &mut Bencher) {
 fn to_u128(b: &mut Bencher) {
     b.iter(|| {
         for i in 0..NITER {
-            assert_eq!(Some(i), bb(LogicVector::from_int_value(i, 128)).unwrap().as_u128());
+            assert_eq!(Some(i), bb(LogicVector::from_int(i, 128)).unwrap().as_u128());
         }
     })
 }

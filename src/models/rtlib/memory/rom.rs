@@ -28,12 +28,12 @@ pub struct Rom1kx8 {
 impl FromIterator<u8> for Rom1kx8 {
     fn from_iter<I: IntoIterator<Item = u8>>(iter: I) -> Self {
         let mut mem = [0; 1024];
-        let mut idx = 0;
+        let mut bytes_read = 0;
         for (m, v) in mem.iter_mut().zip(iter.into_iter()).take(1024) {
-            idx += 1;
+            bytes_read += 1;
             *m = v;
         }
-        assert!(idx >= 1023);
+        assert_eq!(1024, bytes_read);
 
         Self {
             memory: mem,
@@ -88,7 +88,7 @@ impl Updateable for Rom1kx8 {
             } else if ncs.is_1H() || noe.is_1H() {
                 f.set_all_to(Ieee1164::_Z);
             } else if let Some(data) = data {
-                f.set_int_value(data).unwrap();
+                f.replace_with_int(data).unwrap();
             } else {
                 f.set_all_to(Ieee1164::_X);
             }
@@ -112,7 +112,7 @@ mod tests {
     #[test]
     fn read_out_all_data() {
         let mut rom: Rom1kx8 = (0..=255).cycle().collect();
-        let mut addr = Port::<LogicVector, Output>::new(LogicVector::from_ieee_value(Ieee1164::_0, 10));
+        let mut addr = Port::<LogicVector, Output>::new(LogicVector::from_ieee(Ieee1164::_0, 10));
         let data = Port::<LogicVector, Input>::new(LogicVector::with_width(8));
         let noe = Port::<Ieee1164, Output>::new(Ieee1164::_0);
 
@@ -132,7 +132,7 @@ mod tests {
         sig_data.connect(&data).unwrap();
 
         for i in 0..1024 {
-            addr.with_value_mut(|f| f.set_int_value(i).unwrap());
+            addr.with_value_mut(|f| f.replace_with_int(i).unwrap());
             sig_addr.update();
             rom.update();
             sig_data.update();
@@ -147,7 +147,7 @@ mod tests {
         for (i, m) in rom.memory.iter_mut().enumerate() {
             *m = i as u8;
         }
-        let mut addr = Port::<LogicVector, Output>::new(LogicVector::from_ieee_value(Ieee1164::_0, 10));
+        let mut addr = Port::<LogicVector, Output>::new(LogicVector::from_ieee(Ieee1164::_0, 10));
         let data = Port::<LogicVector, Input>::new(LogicVector::with_width(8));
         let noe = Port::<Ieee1164, Output>::new(Ieee1164::_0);
 
@@ -167,7 +167,7 @@ mod tests {
         sig_data.connect(&data).unwrap();
 
         for i in 0..1024 {
-            addr.with_value_mut(|f| f.set_int_value(i).unwrap());
+            addr.with_value_mut(|f| f.replace_with_int(i).unwrap());
             sig_addr.update();
             rom.update();
             sig_data.update();

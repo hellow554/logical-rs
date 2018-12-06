@@ -49,7 +49,7 @@ fn main() {
     circuit.tick();
     circuit.tick();
     circuit.tick();
-    mux_switch.set_value(Ieee1164::_1);
+    mux_switch.replace(Ieee1164::_1);
     circuit.tick();
 
     let mut dumper = Vcd::new("VCD Example");
@@ -62,7 +62,7 @@ fn main() {
         dumper.tick();
         if i % 20 == 0 {
             val = !val;
-            input1.set_value(val);
+            input1.replace(val);
         }
     }
 

@@ -29,7 +29,7 @@ fn main() {
     dumper.serialize_logivector("foo", &foo);
     dumper.tick();
 
-    let one = LogicVector::from_int_value(1, 16).unwrap();
+    let one = LogicVector::from_int(1, 16).unwrap();
     for _ in 0..90 {
         foo = foo + &one;
         dumper.serialize_logivector("foo", &foo);

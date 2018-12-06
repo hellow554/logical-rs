@@ -106,9 +106,9 @@ fn main() {
     ];
 
     for triple in VALUES.iter() {
-        x.set_value(triple[0]);
-        y.set_value(triple[1]);
-        c.set_value(triple[2]);
+        x.replace(triple[0]);
+        y.replace(triple[1]);
+        c.replace(triple[2]);
 
         for _ in 0..3 {
             circuit.tick();

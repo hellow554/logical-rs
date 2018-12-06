@@ -69,17 +69,17 @@ pub struct LogicVector {
 }
 
 impl LogicVector {
-    /// Accepts a [`Ieee1164`] and set that value to the whole range of `width`.
+    /// Accepts a [`Ieee1164`] and sets that `value` to the whole range of `width`.
     ///
     /// # Example
     ///
     /// ```rust
     /// use logical::{Ieee1164, LogicVector};
-    /// let lv = LogicVector::from_ieee_value(Ieee1164::_0, 8);
+    /// let lv = LogicVector::from_ieee(Ieee1164::_0, 8);
     /// assert_eq!(8, lv.width());
     /// assert!(lv.is_000());
     /// ```
-    pub fn from_ieee_value(value: Ieee1164, width: u8) -> Self {
+    pub fn from_ieee(value: Ieee1164, width: u8) -> Self {
         assert!(assert_width(width));
         let mut s = Self {
             masks: Masks::default(),
@@ -102,7 +102,7 @@ impl LogicVector {
     ///
     /// ```rust
     /// use logical::LogicVector;
-    /// let lv = LogicVector::from_int_value(42, 8).unwrap();
+    /// let lv = LogicVector::from_int(42, 8).unwrap();
     /// assert_eq!(lv.as_u128(), Some(42));
     /// ```
     ///
@@ -111,10 +111,10 @@ impl LogicVector {
     ///
     /// ```rust
     /// use logical::LogicVector;
-    /// let lv = LogicVector::from_int_value(42, 5);
+    /// let lv = LogicVector::from_int(42, 5);
     /// assert!(lv.is_none());
     /// ```
-    pub fn from_int_value(value: u128, width: u8) -> Option<Self> {
+    pub fn from_int(value: u128, width: u8) -> Option<Self> {
         let zeros = value.leading_zeros() as u8;
         if assert_width(width) && width >= (128 - zeros) {
             let mut masks = Masks::default();
@@ -132,11 +132,11 @@ impl LogicVector {
     /// (undefined). It is a shortcut for
     ///
     /// ```text
-    /// LogicVector::from_ieee_value(Ieee1164::_U, width);
+    /// LogicVector::from_ieee(Ieee1164::_U, width);
     /// ```
     pub fn with_width(width: u8) -> Self {
         assert!(assert_width(width));
-        Self::from_ieee_value(Ieee1164::default(), width)
+        Self::from_ieee(Ieee1164::default(), width)
     }
 }
 
@@ -178,7 +178,7 @@ impl LogicVector {
     ///
     /// ```rust
     /// # use logical::{Ieee1164, LogicVector};
-    /// let mut lv1 = LogicVector::from_int_value(42, 8).unwrap();
+    /// let mut lv1 = LogicVector::from_int(42, 8).unwrap();
     /// let lv2 = lv1.clone();
     /// let cropped = lv1.resize(8, Ieee1164::_U);
     ///
@@ -190,7 +190,7 @@ impl LogicVector {
     ///
     /// ```rust
     /// # use logical::{Ieee1164, LogicVector};
-    /// let mut lv = LogicVector::from_int_value(58, 7).unwrap();
+    /// let mut lv = LogicVector::from_int(58, 7).unwrap();
     /// let cropped = lv.resize(4, Ieee1164::_U).unwrap();
     ///
     /// assert_eq!(4, lv.width());
@@ -203,7 +203,7 @@ impl LogicVector {
     ///
     /// ```rust
     /// # use logical::{Ieee1164, LogicVector};
-    /// let mut lv = LogicVector::from_int_value(42, 6).unwrap();
+    /// let mut lv = LogicVector::from_int(42, 6).unwrap();
     /// lv.resize(8, Ieee1164::_1);
     ///
     /// assert_eq!(Some(0b11101010), lv.as_u128());
@@ -211,7 +211,7 @@ impl LogicVector {
     ///
     /// ```rust
     /// # use logical::{Ieee1164, LogicVector};
-    /// let mut lv = LogicVector::from_int_value(42, 8).unwrap();
+    /// let mut lv = LogicVector::from_int(42, 8).unwrap();
     /// lv.resize(10, Ieee1164::_1);
     ///
     /// assert_eq!(Some(0b1100101010), lv.as_u128());
@@ -222,7 +222,7 @@ impl LogicVector {
                 (a, b) if a >= b => unreachable!("`old` cannot be greater/equal than `new`!"),
                 (128, 128) => std::u128::MAX,
                 (a, 128) => std::u128::MAX & !((1 << a) - 1),
-                (a, b) => ((1 << b) - 1) & !((1 << a) - 1),
+                (a, b) => ((1u128 << b) - 1) & !((1 << a) - 1),
             }
         }
 
@@ -303,13 +303,13 @@ impl LogicVector {
     ///
     /// ```rust
     /// # use logical::LogicVector;
-    /// let lv = LogicVector::from_int_value(55, 8).unwrap();
+    /// let lv = LogicVector::from_int(55, 8).unwrap();
     /// assert_eq!(Some(55), lv.as_u128());
     /// ```
     ///
     /// ```rust
     /// # use logical::{Ieee1164, LogicVector};
-    /// let mut lv = LogicVector::from_int_value(55, 8).unwrap();
+    /// let mut lv = LogicVector::from_int(55, 8).unwrap();
     /// assert_eq!(Some(55), lv.as_u128());
     /// lv.set(7, Ieee1164::_X);
     /// assert_eq!(None, lv.as_u128());
@@ -432,7 +432,7 @@ impl LogicVector {
         }
         let width = self.width();
         if let (Some(a), Some(b)) = (self.as_u128(), rhs.as_u128()) {
-            LogicVector::from_int_value((a + b) & mask_from_width(width), width)
+            LogicVector::from_int((a + b) & mask_from_width(width), width)
         } else {
             Some(LogicVector::with_width(width))
         }
@@ -448,7 +448,7 @@ fn add(lhs: &LogicVector, rhs: &LogicVector) -> LogicVector {
     let width = lhs.width();
     assert_eq!(width, rhs.width());
 
-    LogicVector::from_int_value(
+    LogicVector::from_int(
         (lhs.as_u128().unwrap() + rhs.as_u128().unwrap()) & mask_from_width(width),
         width,
     )
@@ -636,7 +636,7 @@ mod tests {
     proptest! {
         #[test]
         fn atm_ctor_value(value in 1u64..) {
-            let v = LogicVector::from_int_value(value as u128, 128);
+            let v = LogicVector::from_int(value as u128, 128);
             prop_assert!(v.is_some());
             let v = v.unwrap();
             prop_assert_eq!(v, value as u128);
@@ -644,7 +644,7 @@ mod tests {
 
         #[test]
         fn atm_as_u128(val in 0u64..) {
-            let v = LogicVector::from_int_value(val as u128, 64);
+            let v = LogicVector::from_int(val as u128, 64);
             prop_assert!(v.is_some());
             let mut v = v.unwrap();
             prop_assert_eq!(Ok(()), v.sanity_check());
@@ -664,8 +664,8 @@ mod tests {
             prop_assume!(c.is_some());
             let c = c.unwrap();
 
-            let ia = LogicVector::from_int_value(a, 128);
-            let ib = LogicVector::from_int_value(b, 128);
+            let ia = LogicVector::from_int(a, 128);
+            let ib = LogicVector::from_int(b, 128);
 
             prop_assert!(ia.is_some());
             prop_assert!(ib.is_some());
@@ -706,17 +706,17 @@ mod tests {
 
     #[test]
     fn ctor_value() {
-        let v = LogicVector::from_int_value(5, 3);
+        let v = LogicVector::from_int(5, 3);
         assert!(v.is_some());
         let v = v.unwrap();
         assert_eq!(v.width(), 3);
         assert_eq!(v, 5);
-        let v = LogicVector::from_int_value(0, 128);
+        let v = LogicVector::from_int(0, 128);
         assert!(v.is_some());
         let v = v.unwrap();
         assert_eq!(v.width(), 128);
         assert_eq!(v, 0);
-        let v = LogicVector::from_int_value(5, 8);
+        let v = LogicVector::from_int(5, 8);
         assert!(v.is_some());
         let v = v.unwrap();
         assert_eq!(v.width(), 8);
@@ -736,7 +736,7 @@ mod tests {
         v.set_width(1);
         assert_eq!(v.width(), 1);
 
-        let mut v = LogicVector::from_int_value(31, 5).unwrap();
+        let mut v = LogicVector::from_int(31, 5).unwrap();
         assert_eq!(v.width(), 5);
         assert_eq!(v.as_u128(), Some(0b11111));
         v.set_width(4);
@@ -766,7 +766,7 @@ mod tests {
         v.set_width(5);
         assert_eq!(v.width(), 5);
 
-        let mut v = LogicVector::from_int_value(0, 1).unwrap();
+        let mut v = LogicVector::from_int(0, 1).unwrap();
         assert_eq!(v.width(), 1);
         assert_eq!(v, 0);
         v.resize(2, Ieee1164::_1);

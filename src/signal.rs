@@ -138,7 +138,6 @@ where
         self.remove_expired_portconnector();
 
         let in_guard = self.inner.input_ports.write().unwrap();
-
         let mut iter = in_guard.iter();
 
         let first_port = loop {
