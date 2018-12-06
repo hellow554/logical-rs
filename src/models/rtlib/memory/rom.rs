@@ -10,7 +10,19 @@ use crate::{Ieee1164, LogicVector, Port, Updateable};
 /// output-enable line which can be used to control the data output to be [`Ieee1164::_Z`]
 /// (high-impedance) instead of outputting a value.
 ///
-/// Althought it's a `ROM`, you can modify the values inside programmatically, but not with `Signals`.
+/// Althought it's a `Rom`, you can modify the values inside programmatically, but not with `Signals`.
+///
+/// # Examples
+///
+/// The easiest way to create a `Rom`, is using the [`FromIterator`] trait.
+/// ```rust
+/// use logical::models::rtlib::memory::Rom1kx8;
+///
+/// let rom: Rom1kx8 = (0..=255).cycle().collect();
+/// ```
+///
+/// The `FromIterator` implementation takes exactly 1024 bytes out of the stream and panics if there
+/// are less bytes available.
 pub struct Rom1kx8 {
     /// The memory that holds the values stored inside this Rom.
     pub memory: [u8; 1024],

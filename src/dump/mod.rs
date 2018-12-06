@@ -30,7 +30,11 @@ pub trait IterPorts {
 }
 
 //TODO: Is this really needed? Let's rethink dumping values.
+/// Iterates over the values of a struct. This can either be a single value or multiple, depending
+/// on the struct itself.
 pub trait IterValues {
+    /// FooBar
+    // TODO!
     fn iter_values<F>(&self, f: F)
     where
         F: FnMut(&Ieee1164);
@@ -66,6 +70,8 @@ struct Ident {
     name: String,
 }
 
+/// This is a dumper which will output a `.vcd` file. You can than view the waveform in programs,
+/// e.g. [GtkWave](http://gtkwave.sourceforge.net/).
 #[derive(Debug, Default)]
 pub struct Vcd {
     module_name: String,
@@ -75,6 +81,7 @@ pub struct Vcd {
 }
 
 impl Vcd {
+    /// Create a new `Vcd` dumper that will be able to serialize an `Ieee1164` or a `LogicVector`.
     pub fn new(module_name: &str) -> Self {
         let mut tags = BTreeMap::new();
         tags.insert(0, vec![]);
@@ -85,17 +92,23 @@ impl Vcd {
         }
     }
 
+    // TODO: replace this by a trait function
+    /// Serializes a struct which holds `Port`s. This function will dump all ports it contains.
     pub fn serialize_ports(&mut self, ports: &impl IterPorts) {
         ports.iter_ports(|n, p: &Port<Ieee1164, Output>| {
             p.iter_values(|v| self.serialize_ieee1164(n, *v));
         });
     }
 
+    /// Ticks this dumper. This will increment the inner time to the next value.
     pub fn tick(&mut self) {
         self.timestamp += 1;
         self.tags.insert(self.timestamp, vec![]);
     }
 
+    /// Serializes a `LogicVector`, but won't write anything to a file. It just stores the value
+    /// in memory and a call to [`Vcd::dump`] will actually write the values to disk in the proper
+    /// format.
     pub fn serialize_logivector(&mut self, identifier: &str, value: &LogicVector) {
         let ident = self
             .identifier
@@ -114,6 +127,9 @@ impl Vcd {
             .push((ident, value.to_string()));
     }
 
+    /// Serializes an `Ieee1164`, but won't write anything to a file yet. It just stores the value
+    /// in memory and a call to [`Vcd::dump`] will actually write the values to disk in the proper
+    /// format.
     pub fn serialize_ieee1164(&mut self, identifier: &str, value: Ieee1164) {
         let ident = self
             .identifier
@@ -134,6 +150,9 @@ impl Vcd {
 }
 
 impl Vcd {
+    /// Dumps the recorded values to the file at `path`. In any case of an error, an `std::io::Error`
+    /// will be returned.
+    /// The file will not be overwritten if it already exists.
     pub fn dump<A: AsRef<Path>>(&mut self, path: A) -> io::Result<()> {
         let mut file = OpenOptions::new().write(true).create(true).truncate(true).open(path)?; // FIXME: do not truncate
 
@@ -145,7 +164,15 @@ impl Vcd {
         // vars
         writeln!(file, "$scope module {module_name} $end", module_name = self.module_name)?;
         for i in self.identifier.values() {
-            writeln!(file, "$var {type} {width} {ident} {name} $end", type=i.ty.to_string(), width=i.width, ident=i.ident, name=i.name)?;
+            // TODO: recursive structures
+            writeln!(
+                file,
+                "$var {typ} {width} {ident} {name} $end",
+                typ = i.ty.to_string(),
+                width = i.width,
+                ident = i.ident,
+                name = i.name
+            )?;
         }
         writeln!(file, "$upscope $end")?;
         writeln!(file, "$enddefinitions $end")?;

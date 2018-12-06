@@ -1,15 +1,15 @@
-use std::convert::TryInto;
 use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 
 use super::InnerPort;
 
-use crate::direction::{Dir, InOut, Input, MaybeRead, MaybeWrite, Output, PortDirection, Read, Write};
+use crate::direction::{Dir, MaybeRead, MaybeWrite, PortDirection, Read, Write};
 use crate::dump::IterValues;
-use crate::port::portconnector::PortConnector;
 use crate::signal::WeakSignal;
 use crate::Ieee1164;
 
+#[allow(unused)]
+use crate::direction::{InOut, Input, Output};
 #[allow(unused)]
 use crate::{models::gates::AndGate, Signal};
 
@@ -94,6 +94,7 @@ where
     pub(crate) fn _connect(&mut self, _signal: WeakSignal<T>) {
         //FIXME
         //std::mem::replace(&mut self.inner.signal, signal);
+        unimplemented!()
     }
 
     /// Returns whether this `Port` is connected to a [`Signal`].

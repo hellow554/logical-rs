@@ -11,6 +11,11 @@ pub use self::tvlogic::Ieee1164Value;
 ///
 /// It is required to be commutative! (e.g. `A.resolve(B) == B.resolve(A)`)
 pub trait Resolve<RHS = Self> {
+    /// The output of this trait, e.g. `T` itself. Just look at the [`std::ops::Add`] trait for
+    /// an example
     type Output: ?Sized;
+
+    /// The actual resolve function. This takes lhs, rhs and produces an output from it.
+    /// The type is not restricted and can be freely chosen.
     fn resolve(self, rhs: RHS) -> Self::Output;
 }

@@ -292,9 +292,16 @@ impl LogicVector {
     }
 
     //TODO introduce proper error type
-    //TODO documentation
-    pub fn set_int_value(&mut self, value: u128) -> Result<(), ()> {
-        std::mem::replace(self, Self::from_int_value(value, self.width()).ok_or(())?);
+    /// Replaces the inner value with `value`.
+    ///
+    /// This function does not change the width or does any cropping of the value! This means, that
+    /// if the `value` is out of range (it cannot fit into `self.width()` bits) this function will
+    /// return an `Err`or.
+    ///
+    ///
+    pub fn replace_with_int(&mut self, value: u128) -> Result<(), ()> {
+        std::mem::replace(self, Self::from_int(value, self.width()).ok_or(())?);
+        debug_assert_eq!(Ok(()), self.sanity_check());
         Ok(())
     }
 
@@ -322,19 +329,34 @@ impl LogicVector {
         }
     }
 
-    pub fn get(&self, idx: u8) -> Option<Ieee1164> {
-        assert!(idx < 128);
-        if idx < self.width() {
-            Some(self.masks.get(idx))
+    /// Returns the `Ieee1164` that is at `index`.
+    ///
+    /// If the index is out of range (`index >= self.width()`) then this function will return `None`,
+    /// else `Some(value)` where value is the bit set at that bit position.
+    pub fn get(&self, index: u8) -> Option<Ieee1164> {
+        if index < self.width() {
+            Some(self.masks.get(index))
         } else {
             None
         }
     }
 
-    pub fn set(&mut self, idx: u8, value: Ieee1164) {
-        assert!(idx < 128);
-        if idx < self.width() {
-            self.masks.set(idx, value)
+    /// Sets the bit at the specifix `index` to `value`.
+    ///
+    /// This function only does something, if the `index` is in range, that means
+    /// `index < self.width()`. Elsewise it just ignores this set.
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let mut lv = LogicVector::from_ieee(Ieee1164::_1, 4);
+    /// assert_eq!(Some(15), lv.as_u128());
+    /// lv.set(2, Ieee1164::_0);
+    /// assert_eq!(Some(11), lv.as_u128());
+    /// ```
+    pub fn set(&mut self, index: u8, value: Ieee1164) {
+        if index < self.width() {
+            self.masks.set(index, value);
+            debug_assert_eq!(Ok(()), self.sanity_check());
         }
     }
 }
@@ -426,6 +448,16 @@ unsafe_version_logicvector!(xor, unsafe_xor);
 expand_op_logicvector!(unsafe_xor, BitXor, bitxor);
 
 impl LogicVector {
+    /// Safe add means that when the widths of the `LogicVectors` mismatch the function will return
+    /// `None` instead of panicing. The actual add operation is still unsafe, use
+    /// `{safe,}_wrapping_add` for that purpose.
+    ///
+    /// ```rust
+    /// # use logical::{Ieee1164, LogicVector};
+    /// let lv1 = LogicVector::from_int(25, 16).unwrap();
+    /// let lv2 = LogicVector::from_int(24, 16).unwrap();
+    ///
+    /// assert_eq!(Some(LogicVector::from_int(49, 16).unwrap()), lv1.safe_add(&lv2));
     pub fn safe_add(&self, rhs: &LogicVector) -> Option<LogicVector> {
         if self.width() != rhs.width() {
             return None;
@@ -532,6 +564,8 @@ impl LogicVector {
         self.masks[value] == std::u128::MAX & mask_from_width(self.width)
     }
 
+    /// Checks wether any of the bits does not represent a logic high or logic low. This is only
+    /// true if  `&self` is [`Ieee1164::_0`], [`Ieee1164::_1`], [`Ieee1164::_L`] or [`Ieee1164::_H`].
     pub fn has_UXZ(&self) -> bool {
         self.has_U() || self.has_X() || self.has_W() || self.has_Z() || self.has_D()
     }
