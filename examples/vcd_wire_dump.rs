@@ -4,40 +4,40 @@ use logical::models::{
     inputs::Switch,
     outputs::Led,
 };
-use logical::{Circuit, Ieee1164, Ieee1164Value, Signal};
+use logical::{Circuit, Ieee1164, Signal};
 
 fn main() {
     let mut val = Ieee1164::_1;
 
     let xor = XorGate::default();
     let mux = Mux::default();
-    let mut input1 = Switch::new_with_value(val);
-    let input2 = Switch::new_with_value(Ieee1164::_1);
-    let mut mux_switch = Switch::new_with_value(Ieee1164::_0);
+    let mut input1 = Switch::new(val);
+    let input2 = Switch::new(Ieee1164::_1);
+    let mut mux_switch = Switch::new(Ieee1164::_0);
     let output = Led::default();
 
-    let mut sig_input_signal = Signal::new();
-    sig_input_signal.connect(&input1.output).unwrap();
+    let mut sig_input_signal = Signal::default();
+    sig_input_signal.connect(&input1).unwrap();
     sig_input_signal.connect(&xor.a).unwrap();
 
-    let mut sig_input_mux = Signal::new();
-    sig_input_mux.connect(&input2.output).unwrap();
+    let mut sig_input_mux = Signal::default();
+    sig_input_mux.connect(&input2).unwrap();
     sig_input_mux.connect(&mux.a).unwrap();
 
-    let mut sig_mux_switch = Signal::new();
-    sig_mux_switch.connect(&mux_switch.output).unwrap();
+    let mut sig_mux_switch = Signal::default();
+    sig_mux_switch.connect(&mux_switch).unwrap();
     sig_mux_switch.connect(&mux.s).unwrap();
 
-    let mut sig_rec = Signal::new();
+    let mut sig_rec = Signal::default();
     sig_rec.connect(&mux.b).unwrap();
-    sig_rec.connect(&output.input).unwrap();
+    sig_rec.connect(&output).unwrap();
     sig_rec.connect(&xor.z).unwrap();
 
-    let mut sig_mux_xor = Signal::new();
+    let mut sig_mux_xor = Signal::default();
     sig_mux_xor.connect(&mux.z).unwrap();
     sig_mux_xor.connect(&xor.b).unwrap();
 
-    let mut circuit = Circuit::new();
+    let mut circuit = Circuit::default();
     circuit.add_updater(&xor);
     circuit.add_updater(&mux);
     circuit.add_updater(&sig_input_signal);

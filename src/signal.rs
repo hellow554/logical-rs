@@ -1,14 +1,17 @@
 use std::convert::TryInto;
+use std::iter::FromIterator;
 use std::sync::{Arc, RwLock, Weak};
 
-use crate::direction::{Input, Output, PortDirection};
+use crate::direction::Dir;
+use crate::direction::{Input, MaybeRead, MaybeWrite, Output, PortDirection};
 use crate::logicbit::Resolve;
 use crate::port::PortConnector;
 use crate::{Port, Updateable};
 
-#[derive(Debug, Clone)]
-pub struct Signal<T> {
-    inner: Arc<InnerSignal<T>>,
+#[derive(Debug)]
+struct InnerSignal<T> {
+    input_ports: RwLock<Vec<PortConnector<T, Input>>>,
+    output_ports: RwLock<Vec<PortConnector<T, Output>>>,
 }
 
 #[derive(Debug, Clone)]
@@ -187,8 +190,7 @@ impl<T> Signal<T> {
         macro_rules! filter {
             ($vec:expr) => {
                 let mut guard = $vec.write().unwrap();
-                let v = std::mem::replace(&mut *guard, vec![]);
-                *guard = v.into_iter().filter(PortConnector::is_valid).collect()
+                guard.retain(PortConnector::is_valid);
             };
         };
 
@@ -238,11 +240,11 @@ where
 mod tests {
     use super::*;
     use crate::direction::InOut;
-    use crate::{Ieee1164, Ieee1164Value, Port};
+    use crate::{Ieee1164, Port};
 
     #[test]
     fn signal_no_value_no_port() {
-        let mut s = Signal::<Ieee1164>::new();
+        let mut s = Signal::<Ieee1164>::default();
         let port = Port::<_, Input>::default();
         s.connect(&port).unwrap();
         assert_eq!(Ieee1164::default(), port.value());
@@ -258,7 +260,7 @@ mod tests {
     fn signal_single_port() {
         let i = Port::<_, Input>::default();
         let mut p = Port::<_, Output>::default();
-        let mut s = Signal::new();
+        let mut s = Signal::default();
 
         s.connect(&i).unwrap();
         s.connect(&p).unwrap();
@@ -287,7 +289,7 @@ mod tests {
         let val_b = Ieee1164::_0;
         let mut p = Port::<_, InOut>::new(val_a);
         let o = Port::<_, Input>::default();
-        let mut s = Signal::new();
+        let mut s = Signal::default();
         s.connect(&p).unwrap();
         s.connect(&o).unwrap();
         s.update();
@@ -306,7 +308,7 @@ mod tests {
         let p1 = Port::<_, InOut>::new(val_a);
         let p2 = Port::<_, InOut>::new(val_b);
         let o = Port::<_, Input>::new(Ieee1164::_D);
-        let mut s = Signal::new();
+        let mut s = Signal::default();
 
         s.connect(&p1).unwrap();
         s.connect(&p2).unwrap();
@@ -317,7 +319,7 @@ mod tests {
 
     #[test]
     fn signal_port_out_of_scope() {
-        let mut s = Signal::new();
+        let mut s = Signal::default();
 
         let val_a = Ieee1164::_1;
         let val_b = Ieee1164::_0;
@@ -340,7 +342,7 @@ mod tests {
 
     #[test]
     fn disallow_multiple_connects() {
-        let mut s = Signal::new();
+        let mut s = Signal::default();
 
         let val = Ieee1164::_1;
         let p = Port::<_, InOut>::new(val);

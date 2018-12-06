@@ -1,4 +1,4 @@
-use crate::{Ieee1164, Ieee1164Value};
+use crate::Ieee1164;
 use std::ops::{Index, IndexMut};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

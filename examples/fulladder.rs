@@ -8,7 +8,7 @@ use logical::models::{
     inputs::Switch,
     outputs::Led,
 };
-use logical::{Circuit, Ieee1164, Ieee1164Value, Signal};
+use logical::{Circuit, Ieee1164, Signal};
 
 fn main() {
     //first halfadder
@@ -33,50 +33,50 @@ fn main() {
 
     //connections
     //from x to and and xor of ha1
-    let mut s_x = Signal::<Ieee1164>::new();
-    s_x.connect(&x.output).unwrap();
+    let mut s_x = Signal::<Ieee1164>::default();
+    s_x.connect(&x).unwrap();
     s_x.connect(&and1.a).unwrap();
     s_x.connect(&xor1.a).unwrap();
 
     //from y to and and xor of ha1
-    let mut s_y = Signal::new();
-    s_y.connect(&y.output).unwrap();
+    let mut s_y = Signal::default();
+    s_y.connect(&y).unwrap();
     s_y.connect(&and1.b).unwrap();
     s_y.connect(&xor1.b).unwrap();
 
     //from and of ha1 to or
-    let mut s_ha1_o = Signal::new();
+    let mut s_ha1_o = Signal::default();
     s_ha1_o.connect(&and1.z).unwrap();
     s_ha1_o.connect(&or.a).unwrap();
 
     //from from xor of ha1 to ha2
-    let mut s_ha1_ha2 = Signal::new();
+    let mut s_ha1_ha2 = Signal::default();
     s_ha1_ha2.connect(&xor1.z).unwrap();
     s_ha1_ha2.connect(&and2.a).unwrap();
     s_ha1_ha2.connect(&xor2.a).unwrap();
 
     //from cin to and2 and xor2
-    let mut s_cin_ha2 = Signal::new();
-    s_cin_ha2.connect(&c.output).unwrap();
+    let mut s_cin_ha2 = Signal::default();
+    s_cin_ha2.connect(&c).unwrap();
     s_cin_ha2.connect(&and2.b).unwrap();
     s_cin_ha2.connect(&xor2.b).unwrap();
 
     //from and2 to xor
-    let mut s_ha2_o = Signal::new();
+    let mut s_ha2_o = Signal::default();
     s_ha2_o.connect(&and2.z).unwrap();
     s_ha2_o.connect(&or.b).unwrap();
 
     //from or to cout
-    let mut s_or_cout = Signal::new();
+    let mut s_or_cout = Signal::default();
     s_or_cout.connect(&or.z).unwrap();
-    s_or_cout.connect(&cout.input).unwrap();
+    s_or_cout.connect(&cout).unwrap();
 
     //from xor2 to s
-    let mut s_ha_s = Signal::new();
+    let mut s_ha_s = Signal::default();
     s_ha_s.connect(&xor2.z).unwrap();
-    s_ha_s.connect(&s.input).unwrap();
+    s_ha_s.connect(&s).unwrap();
 
-    let mut circuit = Circuit::new();
+    let mut circuit = Circuit::default();
     circuit.add_updater(&s_x);
     circuit.add_updater(&s_y);
     circuit.add_updater(&s_ha1_o);

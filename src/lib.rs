@@ -38,7 +38,7 @@
 //!
 //! let from = Port::<_, Output>::new(Ieee1164::_1);
 //! let to = Port::<_, Input>::default();
-//! let mut signal = Signal::new();
+//! let mut signal = Signal::default();
 //!
 //! signal.connect(&from);
 //! signal.connect(&to);
@@ -61,7 +61,7 @@
 //! let from1 = Port::<_, Output>::new(Ieee1164::_Z);
 //! let from2 = Port::<_, Output>::new(Ieee1164::_0);
 //! let to = Port::<_, Input>::default();
-//! let mut signal = Signal::new();
+//! let mut signal = Signal::default();
 //!
 //! signal.connect(&from1);
 //! signal.connect(&from2);

@@ -6,10 +6,6 @@ pub struct Circuit {
 }
 
 impl Circuit {
-    pub fn new() -> Self {
-        Circuit { updater: vec![] }
-    }
-
     pub fn tick(&mut self) {
         for u in &mut self.updater {
             u.update();

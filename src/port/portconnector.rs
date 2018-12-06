@@ -1,9 +1,11 @@
 use std::fmt;
 use std::marker::PhantomData;
-use std::sync::Weak;
+use std::sync::{Arc, Weak};
 
-use super::portdirection::{Dir, MaybeRead, MaybeWrite, Read, Write};
-use super::{portdirection::PortDirection, InnerPort, Port};
+use super::InnerPort;
+use crate::direction::{Dir, InOut, Input, MaybeRead, MaybeWrite, Output, PortDirection, Read, Write};
+use crate::Port;
+use std::convert::TryFrom;
 
 #[derive(Clone)]
 pub(crate) struct PortConnector<T, D: PortDirection> {
@@ -65,6 +67,74 @@ where
     pub fn set_value(&mut self, value: T) {
         if let Some(port) = self.to_port() {
             *port.inner.value.write().unwrap() = value;
+        }
+    }
+}
+
+impl<T, D: PortDirection> From<Port<T, D>> for PortConnector<T, D::Opposite> {
+    fn from(port: Port<T, D>) -> Self {
+        PortConnector::new_with_weak(Arc::downgrade(&port.inner))
+    }
+}
+
+impl<T> From<Port<T, InOut>> for PortConnector<T, Input> {
+    fn from(port: Port<T, InOut>) -> Self {
+        PortConnector::new_with_weak(Arc::downgrade(&port.inner))
+    }
+}
+
+impl<T> From<Port<T, InOut>> for PortConnector<T, Output> {
+    fn from(port: Port<T, InOut>) -> Self {
+        PortConnector::new_with_weak(Arc::downgrade(&port.inner))
+    }
+}
+
+//TODO: maybe impl TryInto instead
+//impl<T, D: PortDirection> TryFrom<Port<T, D>> for PortConnector<T, Input> {
+//    type Error = ();
+//
+//    fn try_from(value: Port<T, D>) -> Result<Self, ()> {
+//        if D::IS_OUTPUT || D::IS_INOUT {
+//            Ok(PortConnector::new_with_weak(Arc::downgrade(&value.inner)))
+//        } else {
+//            Err(())
+//        }
+//    }
+//}
+
+impl<T, D: PortDirection> TryFrom<&Port<T, D>> for PortConnector<T, Input> {
+    type Error = ();
+
+    fn try_from(value: &Port<T, D>) -> Result<Self, ()> {
+        if D::IS_OUTPUT || D::IS_INOUT {
+            Ok(PortConnector::new_with_weak(Arc::downgrade(&value.inner)))
+        } else {
+            Err(())
+        }
+    }
+}
+
+//TODO: maybe impl TryInto instead
+//impl<T, D: PortDirection> TryFrom<Port<T, D>> for PortConnector<T, Output> {
+//    type Error = ();
+//
+//    fn try_from(value: Port<T, D>) -> Result<Self, ()> {
+//        if D::IS_INPUT || D::IS_INOUT {
+//            Ok(PortConnector::new_with_weak(Arc::downgrade(&value.inner)))
+//        } else {
+//            Err(())
+//        }
+//    }
+//}
+
+impl<T, D: PortDirection> TryFrom<&Port<T, D>> for PortConnector<T, Output> {
+    type Error = ();
+
+    fn try_from(value: &Port<T, D>) -> Result<Self, ()> {
+        if D::IS_INPUT || D::IS_INOUT {
+            Ok(PortConnector::new_with_weak(Arc::downgrade(&value.inner)))
+        } else {
+            Err(())
         }
     }
 }

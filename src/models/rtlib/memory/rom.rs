@@ -128,18 +128,18 @@ mod tests {
         let data = Port::<LogicVector, Input>::new(LogicVector::with_width(8));
         let noe = Port::<Ieee1164, Output>::new(Ieee1164::_0);
 
-        let mut sig_noe_ncs = Signal::new();
+        let mut sig_noe_ncs = Signal::default();
         sig_noe_ncs.connect(&noe).unwrap();
         sig_noe_ncs.connect(&rom.n_output_enable).unwrap();
         sig_noe_ncs.connect(&rom.n_chip_select).unwrap();
 
         sig_noe_ncs.update();
 
-        let mut sig_addr = Signal::new();
+        let mut sig_addr = Signal::default();
         sig_addr.connect(&rom.addr).unwrap();
         sig_addr.connect(&addr).unwrap();
 
-        let mut sig_data = Signal::new();
+        let mut sig_data = Signal::default();
         sig_data.connect(&rom.data).unwrap();
         sig_data.connect(&data).unwrap();
 
@@ -163,18 +163,18 @@ mod tests {
         let data = Port::<LogicVector, Input>::new(LogicVector::with_width(8));
         let noe = Port::<Ieee1164, Output>::new(Ieee1164::_0);
 
-        let mut sig_noe_ncs = Signal::new();
+        let mut sig_noe_ncs = Signal::default();
         sig_noe_ncs.connect(&noe).unwrap();
         sig_noe_ncs.connect(&rom.n_output_enable).unwrap();
         sig_noe_ncs.connect(&rom.n_chip_select).unwrap();
 
         sig_noe_ncs.update();
 
-        let mut sig_addr = Signal::new();
+        let mut sig_addr = Signal::default();
         sig_addr.connect(&rom.addr).unwrap();
         sig_addr.connect(&addr).unwrap();
 
-        let mut sig_data = Signal::new();
+        let mut sig_data = Signal::default();
         sig_data.connect(&rom.data).unwrap();
         sig_data.connect(&data).unwrap();
 
