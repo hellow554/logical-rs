@@ -8,9 +8,9 @@ use crate::dump::IterValues;
 use crate::signal::WeakSignal;
 use crate::Ieee1164;
 
-#[allow(unused)]
+#[allow(unused_imports)]
 use crate::direction::{InOut, Input, Output};
-#[allow(unused)]
+#[allow(unused_imports)]
 use crate::{models::gates::AndGate, Signal};
 
 /// A `Port` is the connection between a model (e.g. an [`AndGate`]) and a signal.

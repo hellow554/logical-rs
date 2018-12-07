@@ -458,6 +458,7 @@ impl LogicVector {
     /// let lv2 = LogicVector::from_int(24, 16).unwrap();
     ///
     /// assert_eq!(Some(LogicVector::from_int(49, 16).unwrap()), lv1.safe_add(&lv2));
+    /// ```
     pub fn safe_add(&self, rhs: &LogicVector) -> Option<LogicVector> {
         if self.width() != rhs.width() {
             return None;

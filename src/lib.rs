@@ -91,7 +91,7 @@ pub use self::logicbit::{Ieee1164, Ieee1164Value, LogicVector, Resolve};
 pub use self::port::Port;
 pub use self::signal::Signal;
 
-#[allow(unused)]
+#[allow(unused_imports)]
 use self::direction::{InOut, Input, Output, PortDirection};
 
 /// Declares typical structs and trait that are used for indicating directions, e.g. [`Output`],

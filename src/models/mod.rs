@@ -6,7 +6,7 @@ pub mod inputs;
 pub mod outputs;
 pub mod rtlib;
 
-#[allow(unused)]
+#[allow(unused_imports)]
 use self::{
     gates::{AndGate, Mux},
     inputs::Switch,

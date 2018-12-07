@@ -79,20 +79,19 @@ impl<T> WeakSignal<T> {
 /// assert_eq!(Ieee1164::_1, to.value());
 /// ```
 ///
-/// If you like you can construct a Signal from an [`Iterator`], but because of the type system,
-/// they all have to be the same direction.
+/// For convenience you can create a `Signal` with the [`signal!`] macro.
 ///
 /// ```rust
-/// use logical::{Ieee1164, Port, Signal, Updateable};
+/// use logical::{Ieee1164, Port, signal, Signal, Updateable};
 /// use logical::direction::{Input, InOut, Output};
 ///
 /// let port_a = Port::<Ieee1164, Output>::default();
 /// let port_b = Port::<_, Output>::default();
 /// let port_c = Port::<_, Output>::default();
-/// let port_d = Port::<_, Input>::default();
+/// let port_d = Port::<_, InOut>::default();
+/// let port_e = Port::<_, Input>::default();
 ///
-/// let mut signal: Signal<_> = [port_a, port_b, port_c].iter().cloned().collect();
-/// signal.connect(&port_d);
+/// let signal = signal!(port_a, port_b, port_c, port_d, port_e);
 /// ```
 //TOOD: can we circumvent this restriction?
 #[derive(Debug, Clone)]

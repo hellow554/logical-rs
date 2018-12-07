@@ -27,90 +27,43 @@ macro_rules! expand_op {
     };
 }
 
-#[allow(unused_macros)]
-macro_rules! from_prim {
-    ($t:expr, $u:ident, $s:ident) => {
-        impl From<$u> for LogicVector {
-            fn from(v: $u) -> LogicVector {
-                LogicVector::new_from_value($t, u64::from(v))
-            }
+/// A helper macro to create signals from multiple ports regardless of the port direction;
+///
+/// # Example
+///
+/// ```rust
+/// # use logical::{Ieee1164, Port, signal, Signal};
+/// # use logical::direction::{Input, Output, InOut};
+/// let p1 = Port::<Ieee1164, Input>::default();
+/// let p2 = Port::<_, Input>::default();
+/// let p3 = Port::<_, Output>::default();
+/// let p4 = Port::<_, InOut>::default();
+/// let p5 = Port::<_, Output>::default();
+///
+/// let signal = signal!(p1, p2, p3, p4, p5);
+/// ```
+#[macro_export]
+macro_rules! signal {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut signal = Signal::default();
+            $(
+                signal.connect(&$x).unwrap();
+            )*
+            signal
         }
-        impl From<$s> for LogicVector {
-            fn from(v: $s) -> LogicVector {
-                LogicVector::new_from_value($t, v as u64)
-            }
-        }
-    };
+    }
 }
 
-#[allow(unused_macros)]
-macro_rules! into_prim {
-    ($t:expr, $u:ident, $s:ident) => {
-        impl TryFrom<LogicVector> for $u {
-            type Error = VectorError;
-            fn try_from(lv: LogicVector) -> Result<Self, Self::Error> {
-                //TODO maybe without string, could be improved here
-                if lv.bit_width() > $t {
-                    return Err(VectorError::Overflow);
-                }
-                let mut str = String::from_iter(lv.data.iter().take($t).map(char::from));
-                if !lv.is_01() {
-                    return Err(VectorError::HasUXZ);
-                }
-                match $u::from_str_radix(str.deref_mut(), 2) {
-                    Ok(e) => Ok(e),
-                    _ => Err(VectorError::Other),
-                } //TODO hae?!
-            }
+#[macro_export]
+macro_rules! circuit {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut circuit = Circuit::default();
+            $(
+                circuit.add_updater(&$x);
+            )*
+            circuit
         }
-        impl<'a> TryFrom<&'a LogicVector> for $u {
-            type Error = VectorError;
-            fn try_from(lv: &'a LogicVector) -> Result<Self, Self::Error> {
-                if lv.bit_width() > $t {
-                    return Err(VectorError::Overflow);
-                }
-                let mut str = String::from_iter(lv.data.iter().take($t).map(char::from));
-                if !lv.is_01() {
-                    return Err(VectorError::HasUXZ);
-                }
-                match $u::from_str_radix(str.deref_mut(), 2) {
-                    Ok(e) => Ok(e),
-                    _ => Err(VectorError::Other),
-                } //TODO hae?!
-            }
-        }
-        impl TryFrom<LogicVector> for $s {
-            type Error = VectorError;
-            fn try_from(lv: LogicVector) -> Result<Self, Self::Error> {
-                if lv.bit_width() > $t {
-                    return Err(VectorError::Overflow);
-                }
-                let mut str = String::from_iter(lv.data.iter().take($t).map(char::from));
-                if !lv.is_01() {
-                    return Err(VectorError::HasUXZ);
-                }
-                match $u::from_str_radix(str.deref_mut(), 2) {
-                    Ok(e) => Ok(e as $s),
-                    _ => Err(VectorError::Other),
-                } //TODO hae?!
-            }
-        }
-
-        impl<'a> TryFrom<&'a LogicVector> for $s {
-            type Error = VectorError;
-            fn try_from(lv: &'a LogicVector) -> Result<Self, Self::Error> {
-                if lv.bit_width() > $t {
-                    return Err(VectorError::Overflow);
-                }
-                let mut str = String::from_iter(lv.data.iter().take($t).map(char::from));
-                if !lv.is_01() {
-                    return Err(VectorError::HasUXZ);
-                }
-                match $u::from_str_radix(str.deref_mut(), 2) {
-                    Ok(e) => Ok(e as $s),
-                    _ => Err(VectorError::Other),
-                } //TODO hae?!
-            }
-        }
-    };
+    }
 }
