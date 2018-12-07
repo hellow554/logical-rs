@@ -1,12 +1,9 @@
 use std::convert::TryInto;
-use std::iter::FromIterator;
 use std::sync::{Arc, RwLock, Weak};
 
-use crate::direction::Dir;
-use crate::direction::{Input, MaybeRead, MaybeWrite, Output, PortDirection};
-use crate::logicbit::Resolve;
+use crate::direction::{Input, Output, PortDirection};
 use crate::port::PortConnector;
-use crate::{Port, Updateable};
+use crate::{Port, Resolve, Updateable};
 
 #[derive(Debug)]
 struct InnerSignal<T> {
