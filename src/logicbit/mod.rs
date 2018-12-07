@@ -3,7 +3,7 @@ mod logicvector;
 mod tvlogic;
 
 pub use self::ieee1164::Ieee1164;
-pub use self::logicvector::LogicVector;
+pub use self::logicvector::{mask_from_width, LogicVector};
 pub use self::tvlogic::Ieee1164Value;
 
 /// This trait is similar to `Add`, `Sub`, `Mul`, ... and is used to describe how values on the

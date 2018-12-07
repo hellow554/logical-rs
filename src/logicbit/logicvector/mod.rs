@@ -4,7 +4,8 @@ use self::masks::{Masks, SanityChecked};
 use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::fmt;
-use std::ops::{Add, BitAnd, BitOr, BitXor};
+use std::hint::unreachable_unchecked;
+use std::ops::{Add, BitAnd, BitOr, BitXor, Not};
 use std::str::FromStr;
 
 use crate::{Ieee1164, Resolve};
@@ -37,8 +38,9 @@ macro_rules! unsafe_version_logicvector {
     };
 }
 
+/// Generates a bitmask from a given width.
 #[inline(always)]
-fn mask_from_width(width: u8) -> u128 {
+pub fn mask_from_width(width: u8) -> u128 {
     if width != 128 {
         ((1 << width) - 1)
     } else {
@@ -306,7 +308,7 @@ impl LogicVector {
     }
 
     /// Tries to convert this to a `u128`. This will fail if the LogicVector contains any other bits
-    /// than [`Ieee1164::_0`] or [`Ieee1164::_1`].
+    /// than [`Ieee1164::_0`] and [`Ieee1164::_1`].
     ///
     /// ```rust
     /// # use logical::LogicVector;
@@ -326,6 +328,41 @@ impl LogicVector {
             None
         } else {
             Some(self.masks[Ieee1164::_1])
+        }
+    }
+
+    /// Tries to convert this instance to a `i128`. This will fail if the LogicVector contains any
+    /// other bits than [`Ieee1164::_0`] and [`Ieee1164::_1`].
+    ///
+    /// ```rust
+    /// # use logical::LogicVector;
+    /// let lv = LogicVector::from_int(0b00110111, 8).unwrap();
+    /// assert_eq!(Some(55), lv.as_i128());
+    /// ```
+    ///
+    /// ```rust
+    /// # use logical::LogicVector;
+    /// let lv = LogicVector::from_int(0b10110111, 8).unwrap();
+    /// assert_eq!(Some(-73), lv.as_i128());
+    /// ```
+    pub fn as_i128(&self) -> Option<i128> {
+        if let Some(mut unsigned) = self.as_u128() {
+            Some(match (self.width(), (unsigned >> (self.width() - 1)) & 1) {
+                (128, _) => unsigned as i128,
+                (_, 0) => unsigned as i128,
+                (_, 1) => {
+                    for i in 0..unsigned.leading_zeros() {
+                        unsigned |= 1 << (127 - i);
+                    }
+                    unsigned as i128
+                }
+                (_, _) => {
+                    debug_assert!(false, "This point of code should not be reached, ever!");
+                    unsafe { unreachable_unchecked() }
+                }
+            })
+        } else {
+            None
         }
     }
 
@@ -449,8 +486,8 @@ expand_op_logicvector!(unsafe_xor, BitXor, bitxor);
 
 impl LogicVector {
     /// Safe add means that when the widths of the `LogicVectors` mismatch the function will return
-    /// `None` instead of panicing. The actual add operation is still unsafe, use
-    /// `{safe,}_wrapping_add` for that purpose.
+    /// `None` instead of panicing. The actual add operation is still unsafe in terms of overflow,
+    /// use `{safe,}_wrapping_add` for that purpose.
     ///
     /// ```rust
     /// # use logical::{Ieee1164, LogicVector};
@@ -471,8 +508,28 @@ impl LogicVector {
         }
     }
 
-    pub fn wrapping_add(&self, _rhs: &LogicVector) -> LogicVector {
-        unimplemented!()
+    /// Performa a wrapping addition
+    pub fn wrapping_add(&self, rhs: &LogicVector) -> LogicVector {
+        assert_eq!(self.width(), rhs.width());
+
+        let width = self.width();
+        if let (Some(a), Some(b)) = (self.as_u128(), rhs.as_u128()) {
+            LogicVector::from_int((a.wrapping_add(b)) & mask_from_width(width), width).unwrap()
+        } else {
+            LogicVector::with_width(width)
+        }
+    }
+
+    /// Takes this value, increments it by one and returns it.
+    ///
+    /// ```rust
+    /// # use logical::LogicVector;
+    ///
+    /// let lv = LogicVector::from_int(10, 8).unwrap();
+    /// assert_eq!(Some(11), lv.incr().as_u128());
+    /// ```
+    pub fn incr(&self) -> LogicVector {
+        self.wrapping_add(&LogicVector::from_int(1, self.width()).unwrap())
     }
 }
 
@@ -501,6 +558,39 @@ impl PartialEq for LogicVector {
 }
 
 impl Eq for LogicVector {}
+
+impl Not for LogicVector {
+    type Output = LogicVector;
+
+    fn not(self) -> <Self as Not>::Output {
+        !(&self)
+    }
+}
+
+impl Not for &LogicVector {
+    type Output = LogicVector;
+
+    fn not(self) -> <Self as Not>::Output {
+        let mut masks = Masks::default();
+        masks[Ieee1164::_U] = self.masks[Ieee1164::_U];
+        masks[Ieee1164::_X] = self.masks[Ieee1164::_X];
+        masks[Ieee1164::_X] |= self.masks[Ieee1164::_Z];
+        masks[Ieee1164::_X] |= self.masks[Ieee1164::_W];
+        masks[Ieee1164::_X] |= self.masks[Ieee1164::_D];
+
+        masks[Ieee1164::_0] = self.masks[Ieee1164::_1];
+        masks[Ieee1164::_1] = self.masks[Ieee1164::_0];
+        masks[Ieee1164::_1] |= self.masks[Ieee1164::_L];
+        masks[Ieee1164::_0] |= self.masks[Ieee1164::_H];
+
+        debug_assert_eq!(Ok(()), masks.sanity_check(self.width()));
+
+        LogicVector {
+            masks,
+            width: self.width(),
+        }
+    }
+}
 
 impl PartialEq<u128> for LogicVector {
     fn eq(&self, other: &u128) -> bool {
@@ -609,7 +699,6 @@ impl From<Vec<Ieee1164>> for LogicVector {
         }
 
         debug_assert_eq!(Ok(()), masks.sanity_check(len as u8));
-
         LogicVector {
             masks,
             width: len as u8,
@@ -719,6 +808,14 @@ mod tests {
         fn atm_to_string(ref a in "[ux10whlzd]{1,128}") {
             let lv = a.parse::<LogicVector>();
             prop_assert!(lv.is_ok());
+        }
+
+        #[test]
+        fn atm_not(a1 in 0u64.., a2 in 0..64, bitwidth in 1u8..129) {
+            let a = ((a1 as u128) << 64 | (a2 as u128)) & mask_from_width(bitwidth);
+            let lv = LogicVector::from_int(a, bitwidth).unwrap();
+
+            prop_assert_eq!(Some((!a) & mask_from_width(bitwidth)), (!lv).as_u128());
         }
     }
 

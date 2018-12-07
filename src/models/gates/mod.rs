@@ -158,8 +158,12 @@ fn weak_buf(a: Ieee1164) -> Ieee1164 {
         Ieee1164::_Z => Ieee1164::_Z,
     }
 }
-create_simple_1i1o_gate!(WeakBuffer, weak_buf, "A buffer which transforms Strong values into Weak \
-values.");
+create_simple_1i1o_gate!(
+    WeakBuffer,
+    weak_buf,
+    "A buffer which transforms Strong values into Weak \
+     values."
+);
 
 fn weak_inv(a: Ieee1164) -> Ieee1164 {
     match a {
@@ -169,5 +173,9 @@ fn weak_inv(a: Ieee1164) -> Ieee1164 {
         Ieee1164::_Z => Ieee1164::_Z,
     }
 }
-create_simple_1i1o_gate!(WeakInverter, weak_inv, "A buffer which transforms Strong values into Weak\
-values and inverts them.");
+create_simple_1i1o_gate!(
+    WeakInverter,
+    weak_inv,
+    "A buffer which transforms Strong values into Weak\
+     values and inverts them."
+);
