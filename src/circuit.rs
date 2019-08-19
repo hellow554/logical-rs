@@ -2,7 +2,7 @@ use crate::Updateable;
 
 #[derive(Default)]
 pub struct Circuit {
-    updater: Vec<Box<Updateable>>,
+    updater: Vec<Box<dyn Updateable>>,
 }
 
 impl Circuit {

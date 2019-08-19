@@ -1,4 +1,4 @@
-#![feature(nll, try_from, vec_remove_item)]
+#![feature(vec_remove_item)]
 #![warn(missing_docs)]
 
 //! Logical is a digital network simulator. It is named after the german word "Logical" which
