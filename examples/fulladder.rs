@@ -110,8 +110,8 @@ fn main() {
         y.replace(triple[1]);
         c.replace(triple[2]);
 
-        let mut cycle_count = 0_u32;
-        while circuit.tick() && cycle_count < 10_u32 {
+        let mut cycle_count = 1;
+        while circuit.tick() && cycle_count < 11 {
             cycle_count += 1;
         }
 
@@ -122,8 +122,6 @@ fn main() {
         //     circuit.tick();
         // }
         // ```
-
-        cycle_count += 1; // To get the correct number of cycles
 
         println!(
             "{} + {} + {} = {}{} (used {} cycles to reach a stable circuit)",
