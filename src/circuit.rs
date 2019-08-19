@@ -23,7 +23,7 @@ impl Circuit {
     /// let mut circuit = Circuit::default();
     /// /* Configure updaters */
     ///
-    /// let mut clock_cycles = 0_u32;
+    /// let mut clock_cycles = 0;
     /// while circuit.tick() && clock_cycles < 100 { // 100 is a arbitrary value, to avoid looping if we have an oscillating circuit
     ///     clock_cycles += 1;
     /// }
