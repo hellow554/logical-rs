@@ -106,5 +106,7 @@ pub trait Updateable {
     /// When this trait function is called you should perform any action necessary to update the
     /// struct, e.g. reading input values and updating output values. These changes should be
     /// instant.
+    ///
+    /// Returns `true` if the output value of the updatable object was changed.
     fn update(&mut self) -> bool;
 }
