@@ -10,7 +10,8 @@ use crate::{Ieee1164, LogicVector, Port, Updateable};
 /// output-enable line which can be used to control the data output to be [`Ieee1164::_Z`]
 /// (high-impedance) instead of outputting a value.
 ///
-/// Althought it's a `Rom`, you can modify the values inside programmatically, but not with `Signals`.
+/// Althought it's a `Rom`, you can modify the values inside programmatically, but not with
+/// [`Signals`](crate::Signal).
 ///
 /// # Examples
 ///

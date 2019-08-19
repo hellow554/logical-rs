@@ -1,5 +1,6 @@
-//! This module provides logic gates that work with [`Ieee1164`], e.g. [`AndGate`], [`OrGate`],
-//! [`Buffer`], [`Mux`], etc.
+//! This module provides logic gates that work with [`Ieee1164`](crate::Ieee1164), e.g.
+//! [`AndGate`](crate::models::gates::AndGate), [`OrGate`](crate::models::gates::OrGate),
+//! [`Buffer`](crate::models::gates::Buffer), [`Mux`](crate::models::gates::Mux), etc.
 
 mod mux;
 mod tri;

@@ -31,7 +31,7 @@ impl MaybeWrite for Off {}
 
 /// Trait for describing a `PortDirection`.
 ///
-/// This is used for the [`Port`] struct so it can offer or
+/// This is used for the [`Port`](crate::port::Port) struct so it can offer or
 /// decline certain functions at compile time, e.g. reading an `Output` `Port` should not be
 /// possible, but only writing to it.
 ///

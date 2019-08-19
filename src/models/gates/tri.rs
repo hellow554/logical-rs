@@ -2,7 +2,7 @@ use crate::direction::{Input, Output};
 use crate::dump::IterPorts;
 use crate::{Ieee1164, Port, Updateable};
 
-/// A `Tristate-buffer` can be used if you need multiple signals to drive a single [`Signal`].
+/// A `Tristate-buffer` can be used if you need multiple signals to drive a single [`Signal`](crate::Signal).
 ///
 /// This is often used if multiple signals must drive a single one, e.g. a s.c. bus. If [`TriBuffer::s`] is
 /// driven high, [`TriBuffer::z`] will be the value of [`TriBuffer::a`]. If it's driven low, it will
