@@ -67,14 +67,18 @@ pub struct Mux {
 }
 
 impl Updateable for Mux {
-    fn update(&mut self) {
-        self.z.replace(if self.s.value().is_1H() {
+    fn update(&mut self) -> bool {
+        let new_value = if self.s.value().is_1H() {
             self.b.value()
         } else if self.s.value().is_0L() {
             self.a.value()
         } else {
             Ieee1164::_X
-        });
+        };
+
+        let old_value = self.z.replace(new_value);
+
+        old_value != new_value
     }
 }
 

@@ -110,17 +110,27 @@ fn main() {
         y.replace(triple[1]);
         c.replace(triple[2]);
 
-        for _ in 0..3 {
-            circuit.tick();
+        let mut cycle_count = 1;
+        while circuit.tick() && cycle_count < 11 {
+            cycle_count += 1;
         }
 
+        // If the number of required ticks is known, it is possible to use
+        // a loop with a fixed number of iterations
+        // ```
+        // for _ in 0..3 {
+        //     circuit.tick();
+        // }
+        // ```
+
         println!(
-            "{} + {} + {} = {}{}",
+            "{} + {} + {} = {}{} (used {} cycles to reach a stable circuit)",
             triple[0],
             triple[1],
             triple[2],
             cout.value(),
-            s.value()
+            s.value(),
+            cycle_count
         );
         assert_eq!(triple[3], s.value());
         assert_eq!(triple[4], cout.value());

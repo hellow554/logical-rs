@@ -19,14 +19,17 @@ pub struct TriBuffer {
 }
 
 impl Updateable for TriBuffer {
-    fn update(&mut self) {
-        self.z.replace(if self.s.value().is_1H() {
+    fn update(&mut self) -> bool {
+        let new_value = if self.s.value().is_1H() {
             self.a.value()
         } else if self.s.value().is_0L() {
             Ieee1164::_Z
         } else {
             Ieee1164::_X
-        });
+        };
+        let old_value =  self.z.replace(new_value);
+
+        old_value != new_value
     }
 }
 
