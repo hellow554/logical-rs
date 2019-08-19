@@ -11,7 +11,7 @@ pub struct Circuit {
 }
 
 impl Circuit {
-    /// The clock tick function
+    /// The update tick function
     /// This function propagates the logic values by one Updateable element.
     ///
     /// Returns `true` as long as at least one element's output value has changed in the circuit.
