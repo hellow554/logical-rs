@@ -200,8 +200,10 @@ where
     for<'a> &'a T: Resolve<&'a T, Output = T>,
     T: Clone + std::fmt::Debug,
 {
-    fn update(&mut self) {
+    fn update(&mut self) -> bool {
         self.remove_expired_portconnector();
+
+        let old_value = self.inner.output_ports.read().unwrap().clone();
 
         let in_guard = self.inner.input_ports.write().unwrap();
         let mut iter = in_guard.iter();
@@ -229,6 +231,8 @@ where
                 .iter_mut()
                 .for_each(|p| p.set_value(r.clone()));
         }
+
+        old_value != *self.inner.output_ports.read().unwrap()
     }
 }
 

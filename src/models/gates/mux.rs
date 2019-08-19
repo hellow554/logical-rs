@@ -67,7 +67,9 @@ pub struct Mux {
 }
 
 impl Updateable for Mux {
-    fn update(&mut self) {
+    fn update(&mut self) -> bool {
+        //let old_value = self.z.inner;
+        let old_value = self.z.inner.value.read().unwrap().clone();
         self.z.replace(if self.s.value().is_1H() {
             self.b.value()
         } else if self.s.value().is_0L() {
@@ -75,6 +77,8 @@ impl Updateable for Mux {
         } else {
             Ieee1164::_X
         });
+
+        old_value != *self.z.inner.value.read().unwrap()
     }
 }
 

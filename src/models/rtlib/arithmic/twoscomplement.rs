@@ -11,8 +11,10 @@ pub struct TwosComplement {
 }
 
 impl Updateable for TwosComplement {
-    fn update(&mut self) {
+    fn update(&mut self) -> bool {
+        let old_value = self.y.inner.value.read().unwrap().clone();
         let a = self.a.value();
         self.y.with_value_mut(|y| *y = (!a).incr());
+        old_value != *self.y.inner.value.read().unwrap()
     }
 }

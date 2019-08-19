@@ -17,7 +17,8 @@ pub struct Add {
 }
 
 impl Updateable for Add {
-    fn update(&mut self) {
+    fn update(&mut self) -> bool {
+        let old_value = self.s.inner.value.read().unwrap().clone();
         let a = self.a.value();
         let b = self.b.value();
         self.s.with_value_mut(|v| match (a.as_u128(), b.as_u128()) {
@@ -26,5 +27,7 @@ impl Updateable for Add {
                 .unwrap(),
             _ => v.set_all_to(Ieee1164::_U),
         });
+
+        old_value != *self.s.inner.value.read().unwrap()
     }
 }

@@ -82,8 +82,9 @@ impl fmt::Debug for Rom1kx8 {
 }
 
 impl Updateable for Rom1kx8 {
-    fn update(&mut self) {
+    fn update(&mut self) -> bool {
         println!("ROM Update");
+        let old_value = self.data.inner.value.read().unwrap().clone();
         let ncs = self.n_chip_select.value();
         let noe = self.n_output_enable.value();
         let data = if let Some(addr) = self.addr.value().as_u128() {
@@ -105,6 +106,8 @@ impl Updateable for Rom1kx8 {
                 f.set_all_to(Ieee1164::_X);
             }
         });
+
+        old_value != *self.data.inner.value.read().unwrap()
     }
 }
 
