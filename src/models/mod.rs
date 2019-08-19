@@ -1,5 +1,7 @@
 //! This module will contain different models that can be used to perform certain calculations. E.g.
-//! Gates, like [`AndGate`], [`Mux`], [`Switch`], but also complex gates, like ['Alu`] or [`Rom1kx8`].
+//! Gates, like [`AndGate`](crate::models::gates::AndGate), [`Mux`](crate::models::gates::Mux),
+//! [`Switch`](crate::models::inputs::Switch), but also complex gates, like
+//! [`Rom1kx8`](crate::models::rtlib::memory::rom::Rom1kx8).
 
 pub mod gates;
 pub mod inputs;
