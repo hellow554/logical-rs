@@ -13,6 +13,6 @@ pub use self::pport::Port;
 
 #[derive(Debug)]
 pub(crate) struct InnerPort<T> {
-    pub value: RwLock<T>,
+    value: RwLock<T>,
     signal: WeakSignal<T>,
 }

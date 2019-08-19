@@ -26,8 +26,9 @@ macro_rules! create_simple_1i1o_gate {
 
         impl Updateable for $name {
             fn update(&mut self) -> bool {
-                let old_value = self.z.replace($func(self.a.value()));
-                old_value != *self.z.inner.value.read().unwrap()
+                let new_value = $func(self.a.value());
+                let old_value = self.z.replace(new_value);
+                old_value != new_value
             }
         }
 
@@ -59,8 +60,9 @@ macro_rules! create_simple_2i1o_gate {
 
         impl Updateable for $name {
             fn update(&mut self) -> bool {
-                let old_value = self.z.replace($func(self.a.value(), self.b.value()));
-                old_value != *self.z.inner.value.read().unwrap()
+                let new_value = $func(self.a.value(), self.b.value());
+                let old_value = self.z.replace(new_value);
+                old_value != new_value
             }
         }
 
