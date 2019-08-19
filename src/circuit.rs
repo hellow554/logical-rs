@@ -17,6 +17,9 @@ impl Circuit {
     /// Returns `true` as long as at least one element's output value has changed in the circuit.
     ///
     /// ```
+    /// use logical::{Circuit, Signal};
+    /// use logical::models::gates::OrGate;
+    ///
     /// let mut circuit = Circuit::default();
     /// /* Configure updaters */
     ///
@@ -32,7 +35,10 @@ impl Circuit {
     /// Add an [`Updateable`](Updateable) to the `Circuit`
     ///
     /// ```
-    /// let mut sig = Signal::default();
+    /// use logical::{Circuit, Signal, Ieee1164};
+    /// use logical::models::gates::OrGate;
+    ///
+    /// let mut sig: logical::Signal<Ieee1164> = Signal::default();
     /// // Configure signal here
     ///
     /// let or = OrGate::default(); // Gates do not need to be mutable
