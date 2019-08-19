@@ -3,7 +3,6 @@ use std::iter::FromIterator;
 
 use crate::direction::{Input, Output};
 use crate::{Ieee1164, LogicVector, Port, Updateable};
-use crate::port::PortConnector;
 
 /// This struct represents a Read-only-memory with a size of 1kB (1024 bytes).
 ///
@@ -85,8 +84,6 @@ impl fmt::Debug for Rom1kx8 {
 
 impl Updateable for Rom1kx8 {
     fn update(&mut self) -> bool {
-        println!("ROM Update");
-        let old_value = PortConnector::from(self.data.clone()).value();
         let ncs = self.n_chip_select.value();
         let noe = self.n_output_enable.value();
         let data = if let Some(addr) = self.addr.value().as_u128() {
@@ -95,9 +92,8 @@ impl Updateable for Rom1kx8 {
             None
         };
 
-        println!("{} {} {:?}", ncs, noe, data);
-
         self.data.with_value_mut(|f| {
+            let old_value = f.clone();
             if ncs.is_UXZ() || noe.is_UXZ() {
                 f.set_all_to(Ieee1164::_X);
             } else if ncs.is_1H() || noe.is_1H() {
@@ -106,10 +102,9 @@ impl Updateable for Rom1kx8 {
                 f.replace_with_int(data).unwrap();
             } else {
                 f.set_all_to(Ieee1164::_X);
-            }
-        });
-
-        old_value != PortConnector::from(self.data.clone()).value()
+            };
+            old_value == *f
+        })
     }
 }
 
@@ -149,7 +144,10 @@ mod tests {
         sig_data.connect(&data).unwrap();
 
         for i in 0..1024 {
-            addr.with_value_mut(|f| f.replace_with_int(i).unwrap());
+            addr.with_value_mut(|f| {
+                f.replace_with_int(i).unwrap();
+                true
+            });
             sig_addr.update();
             rom.update();
             sig_data.update();
@@ -184,7 +182,10 @@ mod tests {
         sig_data.connect(&data).unwrap();
 
         for i in 0..1024 {
-            addr.with_value_mut(|f| f.replace_with_int(i).unwrap());
+            addr.with_value_mut(|f| {
+                f.replace_with_int(i).unwrap();
+                true
+            });
             sig_addr.update();
             rom.update();
             sig_data.update();
