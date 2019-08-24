@@ -174,7 +174,8 @@ where
     }
 
     /// Accepts a `FnOnce` which accepts a `&mut T`, so you can modify the inner values, instead of
-    /// replacing it.
+    /// replacing it. This function returns true if the inner value was changed. Since the inner value
+    /// may not be cloned, the closure has to return true if the value was changed.
     ///
     /// ```rust
     /// # use logical::Port;
@@ -183,10 +184,11 @@ where
     /// port.with_value_mut(|value| {
     ///     value.push('D');
     ///     assert_eq!("ABCD", value);
+    ///     true
     /// });
     /// ```
-    pub fn with_value_mut<F: FnOnce(&mut T)>(&mut self, f: F) {
-        f(&mut self.inner.value.write().unwrap());
+    pub fn with_value_mut<F: FnOnce(&mut T) -> bool>(&mut self, f: F) -> bool {
+        f(&mut self.inner.value.write().unwrap())
     }
 }
 

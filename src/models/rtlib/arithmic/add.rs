@@ -1,7 +1,6 @@
 use crate::direction::{Input, Output};
 use crate::logicbit::mask_from_width;
 use crate::{Ieee1164, LogicVector, Port, Updateable};
-use crate::port::PortConnector;
 
 /// This models an actual adder that will add up both inputs.
 ///
@@ -19,16 +18,17 @@ pub struct Add {
 
 impl Updateable for Add {
     fn update(&mut self) -> bool {
-        let old_value = PortConnector::from(self.s.clone()).value();
         let a = self.a.value();
         let b = self.b.value();
-        self.s.with_value_mut(|v| match (a.as_u128(), b.as_u128()) {
-            (Some(a), Some(b)) => v
-                .replace_with_int(a.wrapping_add(b) & mask_from_width(v.width()))
-                .unwrap(),
-            _ => v.set_all_to(Ieee1164::_U),
-        });
-
-        old_value != PortConnector::from(self.s.clone()).value()
+        self.s.with_value_mut(|v| {
+            let old_value = v.clone();
+            match (a.as_u128(), b.as_u128()) {
+                (Some(a), Some(b)) => v
+                    .replace_with_int(a.wrapping_add(b) & mask_from_width(v.width()))
+                    .unwrap(),
+                _ => v.set_all_to(Ieee1164::_U),
+            };
+            old_value == *v
+        })
     }
 }
